@@ -27,6 +27,7 @@ interface ChannelAttribute {
   name: string;
   data_type: string;
   is_required?: boolean;
+  is_common?: boolean;
   display_order: number;
 }
 
@@ -73,7 +74,7 @@ export const ChannelTypeManagement: React.FC = () => {
     } catch (error) {
       console.error('Error fetching channel types:', error);
       
-      // Fallback: 미리 정의된 채널 유형 사용
+      // Fallback: 미리 정의된 채널유형 사용
       const fallbackTypes = [
         { id: 1, code: 'platform_service', name: '플랫폼서비스', description: '온라인 플랫폼 및 서비스', color: 'blue', display_order: 1 },
         { id: 2, code: 'government', name: '정부기관', description: '정부 및 공공기관', color: 'gray', display_order: 2 },
@@ -114,17 +115,20 @@ export const ChannelTypeManagement: React.FC = () => {
     } catch (error) {
       console.error('Error fetching attributes:', error);
       
-      // Fallback: 미리 정의된 속성 사용
+      // Fallback: 통일된 채널유형속성 목록
       const fallbackAttributes = [
-        { id: 1, code: 'url', name: 'URL', data_type: 'url', display_order: 1 },
-        { id: 2, code: 'member_count', name: '회원수', data_type: 'number', display_order: 2 },
-        { id: 3, code: 'view_count', name: '조회수', data_type: 'number', display_order: 3 },
-        { id: 4, code: 'posted_date', name: '게재일', data_type: 'date', display_order: 4 },
-        { id: 5, code: 'email', name: '이메일', data_type: 'email', display_order: 5 },
-        { id: 6, code: 'phone', name: '전화번호', data_type: 'text', display_order: 6 },
-        { id: 7, code: 'contact_person', name: '담당자', data_type: 'text', display_order: 7 },
-        { id: 8, code: 'address', name: '주소', data_type: 'text', display_order: 8 },
-        { id: 9, code: 'memo', name: '메모', data_type: 'text', display_order: 9 }
+        { id: 1, code: 'name', name: '이름', data_type: 'text', display_order: 1 },
+        { id: 2, code: 'registration_date', name: '등록일', data_type: 'date', display_order: 2 },
+        { id: 3, code: 'update_date', name: '갱신일', data_type: 'date', display_order: 3 },
+        { id: 4, code: 'memo', name: '메모', data_type: 'text', display_order: 4 },
+        { id: 5, code: 'member_count', name: '인원', data_type: 'number', display_order: 5 },
+        { id: 6, code: 'url', name: 'URL', data_type: 'url', display_order: 6 },
+        { id: 7, code: 'email', name: '이메일', data_type: 'email', display_order: 7 },
+        { id: 8, code: 'contact_person', name: '담당자', data_type: 'text', display_order: 8 },
+        { id: 9, code: 'contact_phone', name: '연락처', data_type: 'text', display_order: 9 },
+        { id: 10, code: 'main_phone', name: '대표전화', data_type: 'text', display_order: 10 },
+        { id: 11, code: 'address', name: '주소', data_type: 'text', display_order: 11 },
+        { id: 12, code: 'is_active', name: '비활성화', data_type: 'boolean', display_order: 12 }
       ];
       
       setAttributes(fallbackAttributes);
@@ -246,7 +250,7 @@ export const ChannelTypeManagement: React.FC = () => {
       setNewType(null);
     } catch (error) {
       console.error('Error saving channel type:', error);
-      alert('채널 유형 저장 실패');
+      alert('채널유형 저장 실패');
     }
   };
 
@@ -276,7 +280,7 @@ export const ChannelTypeManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error updating channel type:', error);
-      alert('채널 유형 수정 실패');
+      alert('채널유형 수정 실패');
     }
   };
 
@@ -304,7 +308,7 @@ export const ChannelTypeManagement: React.FC = () => {
       return;
     }
 
-    if (!window.confirm('이 채널 유형을 삭제하시겠습니까?')) {
+    if (!window.confirm('이 채널유형을 삭제하시겠습니까?')) {
       return;
     }
 
@@ -322,7 +326,7 @@ export const ChannelTypeManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error deleting channel type:', error);
-      alert('채널 유형 삭제 실패');
+      alert('채널유형 삭제 실패');
     }
   };
 
@@ -361,16 +365,16 @@ export const ChannelTypeManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">채널 유형 및 속성 관리</h1>
-        <p className="text-gray-600 mt-2">채널 유형별로 필요한 속성을 설정하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900">채널유형 및 속성 관리</h1>
+        <p className="text-gray-600 mt-2">채널유형별로 필요한 속성을 설정하세요</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 왼쪽: 채널 유형 목록 */}
+        {/* 왼쪽: 채널유형 목록 */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="font-semibold text-lg">채널 유형</h2>
+              <h2 className="font-semibold text-lg">채널유형</h2>
               <button
                 onClick={() => setNewType({ code: '', name: '', color: 'gray', display_order: channelTypes.length + 1 })}
                 className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
@@ -508,60 +512,81 @@ export const ChannelTypeManagement: React.FC = () => {
               </div>
 
               <div className="p-4">
-                <div className="space-y-2">
-                  {attributes.map(attr => {
-                    const typeAttr = typeAttributes[selectedType.id]?.find(
-                      ta => ta.attribute_id === attr.id
-                    );
-                    const isEnabled = !!typeAttr;
+                {/* 통일된 속성 목록 */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">속성 설정</h3>
+                    <a
+                      href="/channel-attributes"
+                      className="text-sm bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200"
+                    >
+                      속성 편집
+                    </a>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    이 채널유형에서 표시할 속성을 선택하세요.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {attributes.map(attr => {
+                      const typeAttr = typeAttributes[selectedType.id]?.find(
+                        ta => ta.attribute_id === attr.id
+                      );
+                      const isEnabled = !!typeAttr;
 
-                    return (
-                      <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
-                        <div className="flex items-center space-x-4">
-                          <button
-                            onClick={() => handleToggleTypeAttribute(selectedType.id, attr.id, !isEnabled)}
-                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
-                              isEnabled 
-                                ? 'bg-blue-600 border-blue-600' 
-                                : 'border-gray-300 hover:border-gray-400'
-                            }`}
-                          >
-                            {isEnabled && <Check size={16} className="text-white" />}
-                          </button>
-                          <div>
-                            <div className="font-medium">{attr.name}</div>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <span className="text-sm text-gray-500">{attr.code}</span>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
-                                {getDataTypeLabel(attr.data_type)}
-                              </span>
+                      return (
+                        <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+                          <div className="flex items-center space-x-4">
+                            <button
+                              onClick={() => handleToggleTypeAttribute(selectedType.id, attr.id, !isEnabled)}
+                              className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                                isEnabled 
+                                  ? 'bg-blue-600 border-blue-600' 
+                                  : 'border-gray-300 hover:border-gray-400'
+                              }`}
+                            >
+                              {isEnabled && <Check size={16} className="text-white" />}
+                            </button>
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{attr.name}</div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-sm text-gray-500 font-mono">{attr.code}</span>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
+                                  {getDataTypeLabel(attr.data_type)}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {isEnabled && (
                           <div className="flex items-center space-x-4">
-                            <label className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                checked={typeAttr?.is_required || false}
-                                onChange={(e) => handleUpdateRequired(selectedType.id, attr.id, e.target.checked)}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="text-sm text-gray-700">필수</span>
-                            </label>
+                            {isEnabled && (
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  checked={typeAttr?.is_required || false}
+                                  onChange={(e) => handleUpdateRequired(selectedType.id, attr.id, e.target.checked)}
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">필수</span>
+                              </label>
+                            )}
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              isEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {isEnabled ? '표시' : '숨김'}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
               <Settings size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">왼쪽에서 채널 유형을 선택하세요</p>
+              <p className="text-gray-600">왼쪽에서 채널유형을 선택하세요</p>
             </div>
           )}
         </div>
@@ -630,29 +655,65 @@ export const ChannelTypeManagement: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-2">
-          {attributes.map(attr => (
-            <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <span className="font-medium">{attr.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">({attr.code})</span>
+        {/* 공통 속성 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">공통 속성</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {attributes.filter(attr => attr.is_common).map(attr => (
+              <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50">
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <span className="font-medium">{attr.name}</span>
+                    <span className="text-sm text-gray-500 ml-2">({attr.code})</span>
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
+                    {getDataTypeLabel(attr.data_type)}
+                  </span>
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+                    공통
+                  </span>
                 </div>
-                <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
-                  {getDataTypeLabel(attr.data_type)}
-                </span>
+                <button
+                  onClick={() => {
+                    setEditingAttribute(attr);
+                    setNewAttribute(attr);
+                  }}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Edit2 size={18} />
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setEditingAttribute(attr);
-                  setNewAttribute(attr);
-                }}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                <Edit2 size={18} />
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* 추가 속성 */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">추가 속성</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {attributes.filter(attr => !attr.is_common).map(attr => (
+              <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <span className="font-medium">{attr.name}</span>
+                    <span className="text-sm text-gray-500 ml-2">({attr.code})</span>
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
+                    {getDataTypeLabel(attr.data_type)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingAttribute(attr);
+                    setNewAttribute(attr);
+                  }}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Edit2 size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

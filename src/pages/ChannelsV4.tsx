@@ -25,6 +25,7 @@ interface ChannelAttribute {
   name: string;
   data_type: string;
   is_required: boolean;
+  is_common?: boolean;
   value?: any;
 }
 
@@ -67,7 +68,7 @@ export const ChannelsV4: React.FC = () => {
       setChannelTypes(data || []);
     } catch (error) {
       console.error('Error fetching channel types:', error);
-      // Fallback: 미리 정의된 채널 유형 사용
+      // Fallback: 미리 정의된 채널유형 사용
       setChannelTypes([
         { id: 1, code: 'platform_service', name: '플랫폼서비스', color: 'blue' },
         { id: 2, code: 'government', name: '정부기관', color: 'gray' },
@@ -366,7 +367,7 @@ export const ChannelsV4: React.FC = () => {
         <button
           onClick={() => {
             if (channelTypes.length === 0) {
-              alert('먼저 채널 유형을 등록해주세요.');
+              alert('먼저 채널유형을 등록해주세요.');
               return;
             }
             const firstType = channelTypes[0];
