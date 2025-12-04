@@ -6,7 +6,7 @@ import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { Dashboard } from './pages/Dashboard';
 import { Campaigns } from './pages/Campaigns';
-import { Channels } from './pages/Channels';
+import { ChannelsV2 as Channels } from './pages/ChannelsV2';
 import { Posts } from './pages/Posts';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';

@@ -9,21 +9,74 @@ import {
   Save,
   X,
   Search,
-  Filter
+  Filter,
+  ChevronDown,
+  Globe,
+  Building,
+  Trophy,
+  Coffee,
+  Smartphone,
+  Users,
+  FileText,
+  MessageCircle,
+  GraduationCap,
+  Mail,
+  Target,
+  BarChart,
+  Calendar
 } from 'lucide-react';
 
+interface ChannelType {
+  id: string;
+  name: string;
+  icon: string;
+  display_order: number;
+  attributes_config: any;
+}
+
+interface ExtendedChannel extends CampaignChannel {
+  channel_type?: string;
+  member_count?: number;
+  view_count?: number;
+  posted_date?: string;
+  registered_date?: string;
+  deleted_date?: string;
+  result?: string;
+  memo?: string;
+  email?: string;
+  phone?: string;
+  homepage_url?: string;
+  attributes?: any;
+}
+
 export const Channels: React.FC = () => {
-  const [channels, setChannels] = useState<CampaignChannel[]>([]);
+  const [channels, setChannels] = useState<ExtendedChannel[]>([]);
+  const [channelTypes, setChannelTypes] = useState<ChannelType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [newChannel, setNewChannel] = useState<Partial<CampaignChannel> | null>(null);
-  const [editingData, setEditingData] = useState<Partial<CampaignChannel>>({});
+  const [newChannel, setNewChannel] = useState<Partial<ExtendedChannel> | null>(null);
+  const [editingData, setEditingData] = useState<Partial<ExtendedChannel>>({});
 
   useEffect(() => {
+    fetchChannelTypes();
     fetchChannels();
   }, []);
+
+  const fetchChannelTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('campaign_channel_types')
+        .select('*')
+        .order('display_order');
+
+      if (error) throw error;
+      setChannelTypes(data || []);
+    } catch (error) {
+      console.error('Error fetching channel types:', error);
+    }
+  };
 
   const fetchChannels = async () => {
     try {
