@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Plus, Edit2, Trash2, Search, Filter, ChevronRight, Save, X } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { Plus, Edit2, Trash2, Search, Users, Hash, Calendar, FileText, Link, Mail, Phone, MapPin, ToggleLeft, Save, X } from 'lucide-react';
 
 interface ChannelType {
   id: number;
@@ -67,6 +67,9 @@ export const ChannelManagement: React.FC = () => {
     if (selectedType) {
       fetchChannels();
       fetchTypeAttributes();
+    } else {
+      setChannels([]);
+      setTypeAttributes([]);
     }
   }, [selectedType]);
 
@@ -207,19 +210,37 @@ export const ChannelManagement: React.FC = () => {
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: 'bg-blue-100 text-blue-800 border-blue-200',
-      gray: 'bg-gray-100 text-gray-800 border-gray-200',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      amber: 'bg-amber-100 text-amber-800 border-amber-200',
-      purple: 'bg-purple-100 text-purple-800 border-purple-200',
-      green: 'bg-green-100 text-green-800 border-green-200',
-      pink: 'bg-pink-100 text-pink-800 border-pink-200',
-      indigo: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      red: 'bg-red-100 text-red-800 border-red-200',
-      teal: 'bg-teal-100 text-teal-800 border-teal-200',
-      cyan: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+      blue: 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200',
+      gray: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200',
+      amber: 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200',
+      purple: 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200',
+      green: 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200',
+      pink: 'bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200',
+      indigo: 'bg-indigo-100 text-indigo-800 border-indigo-300 hover:bg-indigo-200',
+      red: 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200',
+      teal: 'bg-teal-100 text-teal-800 border-teal-300 hover:bg-teal-200',
+      cyan: 'bg-cyan-100 text-cyan-800 border-cyan-300 hover:bg-cyan-200',
     };
-    return colorMap[color] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return colorMap[color] || 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200';
+  };
+
+  const getAttributeIcon = (code: string) => {
+    const iconMap: Record<string, any> = {
+      name: FileText,
+      member_count: Users,
+      url: Link,
+      email: Mail,
+      contact_person: Users,
+      contact_phone: Phone,
+      main_phone: Phone,
+      address: MapPin,
+      registration_date: Calendar,
+      update_date: Calendar,
+      memo: FileText,
+      is_active: ToggleLeft,
+    };
+    return iconMap[code] || Hash;
   };
 
   const renderFormField = (attribute: ChannelAttribute, required: boolean) => {
@@ -328,73 +349,104 @@ export const ChannelManagement: React.FC = () => {
   );
 
   return (
-    <div className="flex h-full">
-      {/* Left: Channel Types List */}
-      <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-4">채널 유형</h2>
-        <div className="space-y-2">
-          {channelTypes.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => setSelectedType(type)}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center justify-between ${
-                selectedType?.id === type.id
-                  ? 'bg-blue-50 border-2 border-blue-500'
-                  : 'hover:bg-gray-50 border-2 border-transparent'
-              }`}
-            >
-              <div>
-                <div className="font-medium">{type.name}</div>
-                <div className="text-sm text-gray-500">{type.description}</div>
-              </div>
-              <ChevronRight size={20} className={`transition-transform ${
-                selectedType?.id === type.id ? 'rotate-90' : ''
-              }`} />
-            </button>
-          ))}
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">채널 관리</h1>
+        <p className="text-gray-600 mt-2">채널 유형을 선택하여 채널을 관리합니다.</p>
       </div>
 
-      {/* Right: Channels List */}
-      <div className="flex-1 bg-gray-50 p-6">
-        {selectedType ? (
-          <>
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
+      {/* Channel Types Grid */}
+      {!selectedType ? (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-6">채널 유형 선택</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {channelTypes.map((type) => (
+              <button
+                key={type.id}
+                onClick={() => setSelectedType(type)}
+                className={`p-4 rounded-lg border-2 transition-all ${getColorClasses(type.color)}`}
+              >
+                <div className="text-center">
+                  <div className="text-lg font-semibold mb-1">{type.name}</div>
+                  <div className="text-sm opacity-80">{type.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Selected Type Header */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setSelectedType(null)}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  ← 뒤로
+                </button>
                 <div>
-                  <h1 className="text-2xl font-bold">
-                    {selectedType.name} 채널 관리
-                  </h1>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-lg text-sm ${getColorClasses(selectedType.color)}`}>
+                      {selectedType.name}
+                    </span>
+                  </h2>
                   <p className="text-gray-600 mt-1">{selectedType.description}</p>
                 </div>
-                <button
-                  onClick={handleAddChannel}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <Plus size={20} />
-                  채널 추가
-                </button>
               </div>
+              <button
+                onClick={handleAddChannel}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Plus size={20} />
+                채널 추가
+              </button>
+            </div>
 
-              <div className="flex gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                  <input
-                    type="text"
-                    placeholder="채널 검색..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+            {/* Type Attributes Display */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">이 유형의 속성</h3>
+              <div className="flex flex-wrap gap-2">
+                {typeAttributes.map((ta) => {
+                  const Icon = getAttributeIcon(ta.attribute.code);
+                  return (
+                    <div
+                      key={ta.id}
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+                        ta.is_required 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border border-gray-300'
+                      }`}
+                    >
+                      <Icon size={14} />
+                      <span>{ta.attribute.name}</span>
+                      {ta.is_required && <span className="text-red-500">*</span>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Channels Table */}
+            {/* Search */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="채널 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Channels List */}
+          <div className="bg-white rounded-lg shadow">
             {loading ? (
               <div className="text-center py-8">로딩 중...</div>
-            ) : (
-              <div className="bg-white rounded-lg shadow overflow-hidden">
+            ) : filteredChannels.length > 0 ? (
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
@@ -456,76 +508,77 @@ export const ChannelManagement: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                
-                {filteredChannels.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    등록된 채널이 없습니다.
-                  </div>
-                )}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <Users size={48} className="mx-auto mb-4 opacity-30" />
+                <p>등록된 채널이 없습니다.</p>
+                <button
+                  onClick={handleAddChannel}
+                  className="mt-4 text-blue-600 hover:text-blue-800"
+                >
+                  첫 채널 추가하기
+                </button>
               </div>
             )}
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            좌측에서 채널 유형을 선택해주세요.
           </div>
-        )}
+        </>
+      )}
 
-        {/* Add/Edit Form Modal */}
-        {showAddForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-                <h2 className="text-xl font-semibold">
-                  {editingChannel ? '채널 수정' : '새 채널 추가'}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setEditingChannel(null);
-                    setFormData({});
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </button>
-              </div>
+      {/* Add/Edit Form Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                {editingChannel ? '채널 수정' : '새 채널 추가'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  setEditingChannel(null);
+                  setFormData({});
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-              <div className="p-6 space-y-4">
-                {typeAttributes.map((ta) => (
-                  <div key={ta.id}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {ta.attribute.name}
-                      {ta.is_required && <span className="text-red-500 ml-1">*</span>}
-                    </label>
-                    {renderFormField(ta.attribute, ta.is_required)}
-                  </div>
-                ))}
-              </div>
+            <div className="p-6 space-y-4">
+              {typeAttributes.map((ta) => (
+                <div key={ta.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {ta.attribute.name}
+                    {ta.is_required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  {renderFormField(ta.attribute, ta.is_required)}
+                </div>
+              ))}
+            </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setEditingChannel(null);
-                    setFormData({});
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleSaveChannel}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <Save size={20} />
-                  {editingChannel ? '수정' : '저장'}
-                </button>
-              </div>
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  setEditingChannel(null);
+                  setFormData({});
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveChannel}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Save size={20} />
+                {editingChannel ? '수정' : '저장'}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

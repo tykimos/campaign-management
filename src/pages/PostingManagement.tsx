@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock, Edit3, FileText } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 interface Campaign {
   id: number;
@@ -135,7 +135,7 @@ export const PostingManagement: React.FC = () => {
       }
       
       const postingsMap: Record<number, Posting> = {};
-      (data || []).forEach(posting => {
+      (data || []).forEach((posting: any) => {
         postingsMap[posting.channel_id] = posting;
       });
       setPostings(postingsMap);
@@ -166,10 +166,10 @@ export const PostingManagement: React.FC = () => {
       
       const stats = {
         total: data?.length || 0,
-        completed: data?.filter(p => p.status === 'completed').length || 0,
-        in_progress: data?.filter(p => p.status === 'in_progress').length || 0,
-        pending: data?.filter(p => p.status === 'pending').length || 0,
-        failed: data?.filter(p => p.status === 'failed').length || 0,
+        completed: data?.filter((p: any) => p.status === 'completed').length || 0,
+        in_progress: data?.filter((p: any) => p.status === 'in_progress').length || 0,
+        pending: data?.filter((p: any) => p.status === 'pending').length || 0,
+        failed: data?.filter((p: any) => p.status === 'failed').length || 0,
       };
       
       setCampaignStats(stats);
@@ -201,24 +201,7 @@ export const PostingManagement: React.FC = () => {
         status: 'pending'
       };
       
-      // First, create the table if it doesn't exist
-      await supabase.rpc('exec_sql', {
-        query: `
-          CREATE TABLE IF NOT EXISTS campaign_postings (
-            id SERIAL PRIMARY KEY,
-            campaign_id INTEGER REFERENCES campaigns(id) ON DELETE CASCADE,
-            channel_id INTEGER REFERENCES channels_v2(id) ON DELETE CASCADE,
-            status VARCHAR(20) DEFAULT 'pending',
-            result TEXT,
-            memo TEXT,
-            posted_date DATE,
-            metrics JSONB,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            UNIQUE(campaign_id, channel_id)
-          );
-        `
-      }).catch(() => {});
+      // Table should already exist, no need to create it
       
       const { error } = await supabase
         .from('campaign_postings')
@@ -251,35 +234,6 @@ export const PostingManagement: React.FC = () => {
     }
   };
 
-  const getStatusLabel = (status?: string) => {
-    switch (status) {
-      case 'completed':
-        return '완료';
-      case 'in_progress':
-        return '진행중';
-      case 'failed':
-        return '실패';
-      default:
-        return '대기';
-    }
-  };
-
-  const getColorClasses = (color: string) => {
-    const colorMap: Record<string, string> = {
-      blue: 'bg-blue-100 text-blue-800 border-blue-200',
-      gray: 'bg-gray-100 text-gray-800 border-gray-200',
-      yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      amber: 'bg-amber-100 text-amber-800 border-amber-200',
-      purple: 'bg-purple-100 text-purple-800 border-purple-200',
-      green: 'bg-green-100 text-green-800 border-green-200',
-      pink: 'bg-pink-100 text-pink-800 border-pink-200',
-      indigo: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      red: 'bg-red-100 text-red-800 border-red-200',
-      teal: 'bg-teal-100 text-teal-800 border-teal-200',
-      cyan: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    };
-    return colorMap[color] || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
 
   return (
     <div className="space-y-6">
