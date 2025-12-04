@@ -289,7 +289,7 @@ export const Posts: React.FC = () => {
 
           {/* Selected Campaign Header */}
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setSelectedCampaign(null)}
@@ -324,10 +324,56 @@ export const Posts: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* Campaign Summary Statistics */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4 border-t">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {(() => {
+                    const totalChannels = channelPostStatuses.length;
+                    const postedChannels = channelPostStatuses.filter(s => s.post).length;
+                    return `${postedChannels}/${totalChannels}`;
+                  })()}
+                </div>
+                <div className="text-sm text-gray-500">게재/전체</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {(() => {
+                    const totalChannels = channelPostStatuses.length;
+                    const postedChannels = channelPostStatuses.filter(s => s.post).length;
+                    const rate = totalChannels > 0 ? (postedChannels / totalChannels * 100).toFixed(1) : 0;
+                    return `${rate}%`;
+                  })()}
+                </div>
+                <div className="text-sm text-gray-500">게재율</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {channelPostStatuses.reduce((sum, s) => sum + (s.post?.view_count || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-500">총 조회수</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {channelPostStatuses.reduce((sum, s) => sum + (s.post?.click_count || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-500">총 클릭수</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {channelPostStatuses.reduce((sum, s) => sum + (s.post?.registration_count || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-500">총 등록수</div>
+              </div>
+            </div>
           </div>
 
           {/* Channel Posts Table */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="px-6 py-4 border-b bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-900">채널별 게재 현황</h3>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -349,6 +395,9 @@ export const Posts: React.FC = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       등록수
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      전환율
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       상태
@@ -448,6 +497,20 @@ export const Posts: React.FC = () => {
                           ) : (
                             <span className="text-sm">{data?.registration_count?.toLocaleString() || '-'}</span>
                           )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {(() => {
+                            const viewCount = data?.view_count || 0;
+                            const clickCount = data?.click_count || 0;
+                            const conversionRate = viewCount > 0 ? ((clickCount / viewCount) * 100).toFixed(2) : '0.00';
+                            return isEditing ? (
+                              <span className="text-sm text-gray-500">-</span>
+                            ) : data ? (
+                              <span className="text-sm font-medium">{conversionRate}%</span>
+                            ) : (
+                              <span className="text-gray-400 text-sm">-</span>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {isEditing ? (
