@@ -6,8 +6,8 @@ import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { Dashboard } from './pages/Dashboard';
 import { Campaigns } from './pages/Campaigns';
-import { ChannelsV4 } from './pages/ChannelsV4';
-import { Posts } from './pages/Posts';
+import { ChannelManagement } from './pages/ChannelManagement';
+import { PostingManagement } from './pages/PostingManagement';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { ChannelTypeManagement } from './pages/ChannelTypeManagement';
@@ -41,9 +41,9 @@ const AppRoutes: React.FC = () => {
       >
         <Route index element={<Dashboard />} />
         <Route path="campaigns" element={<Campaigns />} />
-        <Route path="channels" element={<ChannelsV4 />} />
+        <Route path="channels" element={<ChannelManagement />} />
         <Route path="channel-types" element={<ChannelTypeManagement />} />
-        <Route path="posts" element={<Posts />} />
+        <Route path="posts" element={<PostingManagement />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
       </Route>
