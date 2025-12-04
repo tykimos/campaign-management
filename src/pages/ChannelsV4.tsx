@@ -121,6 +121,12 @@ export const ChannelsV4: React.FC = () => {
   };
 
   const handleSave = async (channel: Channel) => {
+    // Validate required fields
+    if (!channel.name || !channel.channel_type_id) {
+      alert('채널명과 유형은 필수 항목입니다.');
+      return;
+    }
+    
     try {
       const channelData = {
         channel_type_id: channel.channel_type_id,
@@ -345,9 +351,13 @@ export const ChannelsV4: React.FC = () => {
         </div>
         <button
           onClick={() => {
+            if (channelTypes.length === 0) {
+              alert('먼저 채널 유형을 등록해주세요.');
+              return;
+            }
             const firstType = channelTypes[0];
             setNewChannel({
-              channel_type_id: firstType?.id || 1,
+              channel_type_id: firstType.id,
               name: '',
               attributes: {},
               is_active: true
