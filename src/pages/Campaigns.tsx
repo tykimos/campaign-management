@@ -80,9 +80,13 @@ export const Campaigns: React.FC = () => {
       target_views: formData.target_views,
       target_registrations: formData.target_registrations,
       budget: formData.budget || null,
-      status: formData.status,
-      created_by: user?.id
+      status: formData.status
     };
+
+    // Only add created_by for new campaigns
+    if (!editingCampaign) {
+      campaignData.created_by = user?.id;
+    }
 
     try {
       if (editingCampaign) {
