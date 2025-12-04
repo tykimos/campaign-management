@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabaseClient';
 import { 
   Plus, 
   Edit2, 
-  Trash2, 
   Save,
   X,
   Settings,

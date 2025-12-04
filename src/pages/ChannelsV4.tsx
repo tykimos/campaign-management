@@ -4,19 +4,12 @@ import {
   Plus, 
   Edit2, 
   Trash2, 
-  ExternalLink,
   Save,
   X,
   Search,
-  Filter,
-  Calendar,
   Users,
-  Eye,
   Mail,
-  Phone,
-  Globe,
-  Hash,
-  FileText
+  Globe
 } from 'lucide-react';
 
 interface ChannelType {
@@ -221,88 +214,102 @@ export const ChannelsV4: React.FC = () => {
     }
   };
 
-  const renderAttributeInput = (attr: ChannelAttribute, value: any, onChange: (val: any) => void) => {
-    switch (attr.data_type) {
-      case 'number':
-        return (
-          <input
-            type="number"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
-            placeholder={attr.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        );
-      case 'date':
-        return (
-          <input
-            type="date"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        );
-      case 'boolean':
-        return (
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={value || false}
-              onChange={(e) => onChange(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600"
-            />
-            <span>{attr.name}</span>
-          </label>
-        );
-      case 'email':
-        return (
-          <input
-            type="email"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={attr.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        );
-      case 'url':
-        return (
-          <input
-            type="url"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={attr.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        );
-      default:
-        return (
-          <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={attr.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        );
-    }
-  };
+  // const renderAttributeInput = (attr: ChannelAttribute, value: any, onChange: (value: any) => void) => {
+  //   switch (attr.data_type) {
+  //     case 'number':
+  //       return (
+  //         <input
+  //           type="number"
+  //           value={value || ''}
+  //           onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
+  //           placeholder={attr.name}
+  //           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  //         />
+  //       );
+  //     case 'date':
+  //       return (
+  //         <input
+  //           type="date"
+  //           value={value || ''}
+  //           onChange={(e) => onChange(e.target.value)}
+  //           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  //         />
+  //       );
+  //     case 'boolean':
+  //       return (
+  //         <label className="flex items-center space-x-2">
+  //           <input
+  //             type="checkbox"
+  //             checked={value || false}
+  //             onChange={(e) => onChange(e.target.checked)}
+  //             className="rounded border-gray-300 text-blue-600"
+  //           />
+  //           <span>{attr.name}</span>
+  //         </label>
+  //       );
+  //     case 'email':
+  //       return (
+  //         <input
+  //           type="email"
+  //           value={value || ''}
+  //           onChange={(e) => onChange(e.target.value)}
+  //           placeholder={attr.name}
+  //           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  //         />
+  //       );
+  //     case 'url':
+  //       return (
+  //         <input
+  //           type="url"
+  //           value={value || ''}
+  //           onChange={(e) => onChange(e.target.value)}
+  //           placeholder={attr.name}
+  //           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  //         />
+  //       );
+  //     default:
+  //       return (
+  //         <input
+  //           type="text"
+  //           value={value || ''}
+  //           onChange={(e) => onChange(e.target.value)}
+  //           placeholder={attr.name}
+  //           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  //         />
+  //       );
+  //   }
+  // };
 
-  const getAttributeIcon = (code: string) => {
-    const icons: { [key: string]: JSX.Element } = {
-      'url': <Globe size={16} />,
-      'homepage_url': <Globe size={16} />,
-      'member_count': <Users size={16} />,
-      'view_count': <Eye size={16} />,
-      'avg_daily_views': <Eye size={16} />,
-      'email': <Mail size={16} />,
-      'phone': <Phone size={16} />,
-      'contact_phone': <Phone size={16} />,
-      'posted_date': <Calendar size={16} />,
-      'registered_date': <Calendar size={16} />,
-      'memo': <FileText size={16} />
-    };
-    return icons[code] || <Hash size={16} />;
-  };
+  // const getAttributeIcon = (code: string) => {
+  //   const icons: { [key: string]: LucideIcon } = {
+  //     'url': Link,
+  //     'member_count': Users,
+  //     'view_count': Eye,
+  //     'avg_daily_views': Eye,
+  //     'posted_date': Calendar,
+  //     'registered_date': Calendar,
+  //     'deleted_date': Calendar,
+  //     'email': Mail,
+  //     'phone': Phone,
+  //     'homepage_url': Globe,
+  //     'contact_person': User,
+  //     'contact_phone': Phone,
+  //     'pr_contact': User,
+  //     'region': MapPin,
+  //     'campus_type': Building2,
+  //     'academic_system': GraduationCap,
+  //     'establishment_type': Building,
+  //     'address': MapPin,
+  //     'postal_code': MapPin,
+  //     'organization_size': Users,
+  //     'memo': FileText,
+  //     'status': Check,
+  //     'verification_status': Shield,
+  //     'last_post_date': Calendar,
+  //     'response_rate': ChevronRight
+  //   };
+  //   return icons[code] || FileText;
+  // };
 
   const filteredChannels = channels.filter(channel => {
     const matchesType = selectedType === 'all' || channel.type_code === selectedType;
@@ -391,7 +398,7 @@ export const ChannelsV4: React.FC = () => {
             <div className="grid grid-cols-3 gap-4">
               <select
                 value={newChannel.channel_type_id}
-                onChange={(e) => setNewChannel({ ...newChannel, channel_type_id: parseInt(e.target.value) })}
+                onChange={(e) => setNewChannel(newChannel ? { ...newChannel, channel_type_id: parseInt(e.target.value) } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               >
                 {channelTypes.map(type => (
@@ -404,7 +411,7 @@ export const ChannelsV4: React.FC = () => {
                 type="text"
                 placeholder="채널명 *"
                 value={newChannel.name}
-                onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })}
+                onChange={(e) => setNewChannel(newChannel ? { ...newChannel, name: e.target.value } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
                 autoFocus
               />
@@ -412,7 +419,7 @@ export const ChannelsV4: React.FC = () => {
                 type="text"
                 placeholder="설명"
                 value={newChannel.description || ''}
-                onChange={(e) => setNewChannel({ ...newChannel, description: e.target.value })}
+                onChange={(e) => setNewChannel(newChannel ? { ...newChannel, description: e.target.value } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
@@ -422,37 +429,37 @@ export const ChannelsV4: React.FC = () => {
                 type="url"
                 placeholder="URL"
                 value={newChannel.attributes?.url || ''}
-                onChange={(e) => setNewChannel({ 
+                onChange={(e) => setNewChannel(newChannel ? { 
                   ...newChannel, 
-                  attributes: { ...newChannel.attributes, url: e.target.value }
-                })}
+                  attributes: { ...newChannel?.attributes, url: e.target.value }
+                } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
               <input
                 type="number"
                 placeholder="회원수"
                 value={newChannel.attributes?.member_count || ''}
-                onChange={(e) => setNewChannel({ 
+                onChange={(e) => setNewChannel(newChannel ? { 
                   ...newChannel, 
-                  attributes: { ...newChannel.attributes, member_count: e.target.value ? parseInt(e.target.value) : null }
-                })}
+                  attributes: { ...newChannel?.attributes, member_count: e.target.value ? parseInt(e.target.value) : null }
+                } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
               <input
                 type="email"
                 placeholder="이메일"
                 value={newChannel.attributes?.email || ''}
-                onChange={(e) => setNewChannel({ 
+                onChange={(e) => setNewChannel(newChannel ? { 
                   ...newChannel, 
-                  attributes: { ...newChannel.attributes, email: e.target.value }
-                })}
+                  attributes: { ...newChannel?.attributes, email: e.target.value }
+                } : null)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
             
             <div className="flex justify-end space-x-2">
               <button
-                onClick={() => handleSave(newChannel)}
+                onClick={() => newChannel && handleSave(newChannel)}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
               >
                 <Save size={18} />
