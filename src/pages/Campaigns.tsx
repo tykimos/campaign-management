@@ -71,8 +71,16 @@ export const Campaigns: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const campaignData = {
-      ...formData,
+    const campaignData: any = {
+      name: formData.name,
+      category_id: formData.category_id || null,
+      description: formData.description || null,
+      start_date: formData.start_date || null,
+      end_date: formData.end_date || null,
+      target_views: formData.target_views,
+      target_registrations: formData.target_registrations,
+      budget: formData.budget || null,
+      status: formData.status,
       created_by: user?.id
     };
 

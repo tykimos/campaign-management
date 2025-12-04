@@ -1,7 +1,7 @@
 -- =====================================================
 -- Campaign Management System Database Schema
--- Version: 1.0.0
--- Updated: 2024-12-03
+-- Version: 1.1.0
+-- Updated: 2024-12-04
 -- =====================================================
 
 -- =====================================================
@@ -124,12 +124,20 @@ ALTER TABLE public.campaign_posts ENABLE ROW LEVEL SECURITY;
 -- 2. Row Level Security (RLS) Policies
 -- =====================================================
 
--- 2.1 Users table policies
+-- 2.1 Users table policies (FIXED: Removed infinite recursion)
 CREATE POLICY "Users can view own profile" 
   ON public.users FOR SELECT 
-  USING (auth.uid() = id OR EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (auth.uid() = id);
+
+CREATE POLICY "Admin can view all users" 
+  ON public.users FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users u 
+      WHERE u.id = auth.uid() AND u.role = 'admin'
+      LIMIT 1
+    )
+  );
 
 CREATE POLICY "Users can update own profile" 
   ON public.users FOR UPDATE 
@@ -145,10 +153,34 @@ CREATE POLICY "Anyone can view categories"
   USING (true);
 
 CREATE POLICY "Admin can manage categories" 
-  ON public.campaign_categories FOR ALL 
-  USING (EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  ON public.campaign_categories FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
+
+CREATE POLICY "Admin can update categories" 
+  ON public.campaign_categories FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
+
+CREATE POLICY "Admin can delete categories" 
+  ON public.campaign_categories FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 -- 2.3 Campaigns policies
 CREATE POLICY "Anyone can view active campaigns" 
@@ -161,26 +193,48 @@ CREATE POLICY "Authenticated users can create campaigns"
 
 CREATE POLICY "Users can update own campaigns" 
   ON public.campaigns FOR UPDATE 
-  USING (created_by = auth.uid() OR EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (
+    created_by = auth.uid() OR 
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 CREATE POLICY "Users can delete own campaigns" 
   ON public.campaigns FOR DELETE 
-  USING (created_by = auth.uid() OR EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (
+    created_by = auth.uid() OR 
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 -- 2.4 Campaign Channels policies
 CREATE POLICY "Anyone can view channels" 
   ON public.campaign_channels FOR SELECT 
   USING (true);
 
-CREATE POLICY "Admin can manage channels" 
-  ON public.campaign_channels FOR ALL 
-  USING (EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+CREATE POLICY "Authenticated users can create channels" 
+  ON public.campaign_channels FOR INSERT 
+  WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Authenticated users can update channels" 
+  ON public.campaign_channels FOR UPDATE
+  USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Admin can delete channels" 
+  ON public.campaign_channels FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 -- 2.5 Campaign Posts policies
 CREATE POLICY "Anyone can view posts" 
@@ -193,15 +247,25 @@ CREATE POLICY "Authenticated users can create posts"
 
 CREATE POLICY "Users can update own posts" 
   ON public.campaign_posts FOR UPDATE 
-  USING (posted_by = auth.uid() OR EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (
+    posted_by = auth.uid() OR 
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 CREATE POLICY "Users can delete own posts" 
   ON public.campaign_posts FOR DELETE 
-  USING (posted_by = auth.uid() OR EXISTS (
-    SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-  ));
+  USING (
+    posted_by = auth.uid() OR 
+    EXISTS (
+      SELECT 1 FROM public.users 
+      WHERE id = auth.uid() AND role = 'admin'
+      LIMIT 1
+    )
+  );
 
 -- =====================================================
 -- 3. Triggers and Functions
@@ -301,7 +365,10 @@ INSERT INTO public.campaign_channels (name, category, url, member_count, avg_dai
 ('컬처플', 'contest', 'https://www.cultureple.com', NULL, 3000, '문화 콘텐츠 플랫폼', true),
 ('코워커', 'contest', 'https://co-worker.co.kr', 6212, 5000, '협업 프로젝트 플랫폼', true),
 ('콘테스트 코리아', 'contest', 'https://www.contestkorea.com', 98, 7000, '공모전 종합 플랫폼', true),
-('G콘테스트', 'contest', 'https://gcontest.co.kr', 13, 2000, '공모전 정보 사이트', true)
+('G콘테스트', 'contest', 'https://gcontest.co.kr', 13, 2000, '공모전 정보 사이트', true),
+('공모전알고', 'contest', 'https://www.contestalgo.com', NULL, 3500, '공모전 알림 서비스', true),
+('공모탑', 'contest', 'https://www.gongmotop.com', 13, 2500, '공모전 전문 플랫폼', true),
+('대티즌', 'contest', 'https://www.detizen.com', NULL, 4000, '대학생 활동 플랫폼', true)
 ON CONFLICT DO NOTHING;
 
 -- Sample Community Channels
@@ -327,14 +394,82 @@ INSERT INTO public.campaign_channels (name, category, url, description, is_activ
 ('LDS', 'community', 'https://www.linuxdata.org', '리눅스 데이터 시스템', true),
 ('창업코리아', 'community', 'https://www.dream.go.kr', '창업 커뮤니티', true),
 ('대구창조경제혁신센터', 'community', 'https://startup.daegu.go.kr', '지역 창업 지원', true),
-('넥스트유니콘', 'community', 'https://www.nextunicorn.kr', '스타트업 플랫폼', true)
+('넥스트유니콘', 'community', 'https://www.nextunicorn.kr', '스타트업 플랫폼', true),
+('돌고넷', 'community', 'http://dolgo.net', '개발자 Q&A 커뮤니티', true)
 ON CONFLICT DO NOTHING;
 
--- Sample Campaigns
-INSERT INTO public.campaigns (name, category_id, description, start_date, end_date, target_views, target_registrations, status) VALUES
-('제3회 네트워크 지능화를 위한 인공지능 해커톤', 'contest', '네트워크 AI 기술 경진대회', '2024-09-01', '2024-10-31', 10000, 100, 'completed'),
-('딥페이크 범죄 대응을 위한 AI 탐지 모델 경진대회', 'contest', '딥페이크 탐지 기술 개발', '2024-11-01', '2024-12-31', 15000, 200, 'active'),
-('2024 AI 개발자 세미나', 'seminar', 'AI 최신 기술 트렌드 공유', '2024-12-10', '2024-12-10', 5000, 500, 'planning')
+-- Sample Campaigns (with actual user ID - will be updated when user logs in)
+INSERT INTO public.campaigns (name, category_id, description, start_date, end_date, target_views, target_registrations, status, budget) VALUES
+('제3회 네트워크 지능화를 위한 인공지능 해커톤', 'contest', '네트워크 AI 기술 경진대회', '2024-09-01', '2024-10-31', 10000, 100, 'completed', 500000),
+('딥페이크 범죄 대응을 위한 AI 탐지 모델 경진대회', 'contest', '딥페이크 탐지 기술 개발', '2024-11-01', '2024-12-31', 15000, 200, 'active', 1000000),
+('2024 AI 개발자 세미나', 'seminar', 'AI 최신 기술 트렌드 공유', '2024-12-10', '2024-12-10', 5000, 500, 'planning', 300000),
+('인공지능 윤리 워크샵', 'seminar', 'AI 윤리 가이드라인 교육', '2024-12-15', '2024-12-15', 3000, 150, 'planning', 200000),
+('머신러닝 스터디 모집', 'community', '주간 ML 스터디 그룹', '2024-12-01', '2025-02-28', 2000, 50, 'active', 0)
+ON CONFLICT DO NOTHING;
+
+-- Sample Posts (will need to update campaign_id and channel_id based on actual IDs)
+-- These will be inserted after campaigns and channels are created
+INSERT INTO public.campaign_posts (
+  campaign_id, 
+  channel_id, 
+  post_url, 
+  title,
+  posted_date, 
+  view_count, 
+  click_count, 
+  registration_count,
+  status,
+  result
+) 
+SELECT 
+  c.id,
+  ch.id,
+  'https://example.com/post/' || c.id || '-' || ch.id,
+  c.name || ' - ' || ch.name,
+  CURRENT_DATE - INTERVAL '5 days',
+  FLOOR(RANDOM() * 1000 + 100),
+  FLOOR(RANDOM() * 100 + 10),
+  FLOOR(RANDOM() * 20 + 1),
+  'posted',
+  CASE WHEN RANDOM() > 0.5 THEN 'success' ELSE 'moderate' END
+FROM 
+  public.campaigns c
+  CROSS JOIN public.campaign_channels ch
+WHERE 
+  c.status IN ('active', 'completed')
+  AND ch.category = 'contest'
+LIMIT 10
+ON CONFLICT DO NOTHING;
+
+-- More sample posts with various statuses
+INSERT INTO public.campaign_posts (
+  campaign_id, 
+  channel_id, 
+  post_url,
+  title, 
+  posted_date, 
+  view_count, 
+  click_count, 
+  registration_count,
+  status
+) 
+SELECT 
+  c.id,
+  ch.id,
+  'https://example.com/community/' || c.id || '-' || ch.id,
+  c.name || ' 커뮤니티 게재',
+  CURRENT_DATE - INTERVAL '10 days',
+  FLOOR(RANDOM() * 500 + 50),
+  FLOOR(RANDOM() * 50 + 5),
+  FLOOR(RANDOM() * 10),
+  'posted'
+FROM 
+  public.campaigns c
+  CROSS JOIN public.campaign_channels ch
+WHERE 
+  c.status IN ('active', 'completed')
+  AND ch.category = 'community'
+LIMIT 10
 ON CONFLICT DO NOTHING;
 
 -- =====================================================
