@@ -11,7 +11,6 @@ import { Posts } from './pages/Posts';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { ChannelTypeManagement } from './pages/ChannelTypeManagement';
-import ChannelAttributeManagement from './pages/ChannelAttributeManagement';
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { session, loading } = useAuth();
@@ -44,7 +43,6 @@ const AppRoutes: React.FC = () => {
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="channels" element={<ChannelsV4 />} />
         <Route path="channel-types" element={<ChannelTypeManagement />} />
-        <Route path="channel-attributes" element={<ChannelAttributeManagement />} />
         <Route path="posts" element={<Posts />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />

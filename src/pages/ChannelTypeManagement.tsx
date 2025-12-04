@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { 
   Plus, 
-  Edit2, 
-  Save,
-  X,
+  Edit2,
   Settings,
   ChevronRight,
   Check,
@@ -46,8 +44,6 @@ export const ChannelTypeManagement: React.FC = () => {
   const [typeAttributes, setTypeAttributes] = useState<{ [key: number]: ChannelTypeAttribute[] }>({});
   const [selectedType, setSelectedType] = useState<ChannelType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editingAttribute, setEditingAttribute] = useState<ChannelAttribute | null>(null);
-  const [newAttribute, setNewAttribute] = useState<Partial<ChannelAttribute> | null>(null);
   const [editingType, setEditingType] = useState<ChannelType | null>(null);
   const [newType, setNewType] = useState<Partial<ChannelType> | null>(null);
 
@@ -153,36 +149,6 @@ export const ChannelTypeManagement: React.FC = () => {
     }
   };
 
-  const handleSaveAttribute = async () => {
-    if (!newAttribute?.code || !newAttribute?.name || !newAttribute?.data_type) {
-      alert('속성 코드, 이름, 데이터 타입은 필수입니다.');
-      return;
-    }
-
-    try {
-      if (editingAttribute) {
-        const { error } = await supabase
-          .from('channel_attributes')
-          .update(newAttribute)
-          .eq('id', editingAttribute.id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('channel_attributes')
-          .insert([newAttribute]);
-        
-        if (error) throw error;
-      }
-      
-      fetchAttributes();
-      setNewAttribute(null);
-      setEditingAttribute(null);
-    } catch (error) {
-      console.error('Error saving attribute:', error);
-      alert('속성 저장 실패');
-    }
-  };
 
   const handleToggleTypeAttribute = async (typeId: number, attributeId: number, isEnabled: boolean) => {
     try {
@@ -514,14 +480,8 @@ export const ChannelTypeManagement: React.FC = () => {
               <div className="p-4">
                 {/* 통일된 속성 목록 */}
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4">
                     <h3 className="text-lg font-medium text-gray-900">속성 설정</h3>
-                    <a
-                      href="/channel-attributes"
-                      className="text-sm bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200"
-                    >
-                      속성 편집
-                    </a>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">
                     이 채널유형에서 표시할 속성을 선택하세요.
@@ -592,130 +552,6 @@ export const ChannelTypeManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* 속성 추가 섹션 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">전체 속성 관리</h3>
-          <button
-            onClick={() => setNewAttribute({ code: '', name: '', data_type: 'text', display_order: 0 })}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>새 속성 추가</span>
-          </button>
-        </div>
-
-        {newAttribute && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <div className="grid grid-cols-4 gap-4">
-              <input
-                type="text"
-                placeholder="속성 코드 (예: url)"
-                value={newAttribute.code || ''}
-                onChange={(e) => setNewAttribute({ ...newAttribute, code: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
-              />
-              <input
-                type="text"
-                placeholder="속성 이름 (예: URL)"
-                value={newAttribute.name || ''}
-                onChange={(e) => setNewAttribute({ ...newAttribute, name: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
-              />
-              <select
-                value={newAttribute.data_type || 'text'}
-                onChange={(e) => setNewAttribute({ ...newAttribute, data_type: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="text">텍스트</option>
-                <option value="number">숫자</option>
-                <option value="date">날짜</option>
-                <option value="boolean">예/아니오</option>
-                <option value="url">URL</option>
-                <option value="email">이메일</option>
-              </select>
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleSaveAttribute}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                  <Save size={18} />
-                </button>
-                <button
-                  onClick={() => {
-                    setNewAttribute(null);
-                    setEditingAttribute(null);
-                  }}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 공통 속성 */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">공통 속성</h3>
-          <div className="grid grid-cols-1 gap-2">
-            {attributes.filter(attr => attr.is_common).map(attr => (
-              <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-green-50">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <span className="font-medium">{attr.name}</span>
-                    <span className="text-sm text-gray-500 ml-2">({attr.code})</span>
-                  </div>
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
-                    {getDataTypeLabel(attr.data_type)}
-                  </span>
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
-                    공통
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    setEditingAttribute(attr);
-                    setNewAttribute(attr);
-                  }}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 추가 속성 */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-3">추가 속성</h3>
-          <div className="grid grid-cols-1 gap-2">
-            {attributes.filter(attr => !attr.is_common).map(attr => (
-              <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <span className="font-medium">{attr.name}</span>
-                    <span className="text-sm text-gray-500 ml-2">({attr.code})</span>
-                  </div>
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${getDataTypeColor(attr.data_type)}`}>
-                    {getDataTypeLabel(attr.data_type)}
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    setEditingAttribute(attr);
-                    setNewAttribute(attr);
-                  }}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <Edit2 size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
