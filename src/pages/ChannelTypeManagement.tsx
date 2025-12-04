@@ -158,6 +158,16 @@ export const ChannelTypeManagement: React.FC = () => {
       // Using fallback data - database tables not yet created
       if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
         console.log('Using fallback type attributes - database not configured yet');
+        
+        // Fallback: Initialize with default visible attributes (name, registration_date, update_date, memo)
+        const fallbackTypeAttributes: ChannelTypeAttribute[] = [
+          { channel_type_id: typeId, attribute_id: 1, is_required: true, display_order: 1 }, // 이름
+          { channel_type_id: typeId, attribute_id: 2, is_required: false, display_order: 2 }, // 등록일
+          { channel_type_id: typeId, attribute_id: 3, is_required: false, display_order: 3 }, // 갱신일
+          { channel_type_id: typeId, attribute_id: 4, is_required: false, display_order: 4 }, // 메모
+        ];
+        
+        setTypeAttributes(prev => ({ ...prev, [typeId]: fallbackTypeAttributes }));
       } else {
         console.error('Error fetching type attributes:', error);
       }
@@ -166,9 +176,44 @@ export const ChannelTypeManagement: React.FC = () => {
 
 
   const handleToggleTypeAttribute = async (typeId: number, attributeId: number, isEnabled: boolean) => {
+    // Check if we're in fallback mode (no database connection)
+    const isFallbackMode = !typeAttributes[typeId] || typeAttributes[typeId].length === 0;
+    
+    if (isFallbackMode || true) { // Always use fallback mode for now since DB is not configured
+      // Handle in local state (fallback mode)
+      setTypeAttributes(prev => {
+        const currentTypeAttrs = prev[typeId] || [];
+        
+        if (isEnabled) {
+          // Add attribute
+          const maxOrder = currentTypeAttrs.reduce((max, ta) => 
+            Math.max(max, ta.display_order), 0) || 0;
+          
+          const newAttr: ChannelTypeAttribute = {
+            channel_type_id: typeId,
+            attribute_id: attributeId,
+            is_required: false,
+            display_order: maxOrder + 1
+          };
+          
+          return {
+            ...prev,
+            [typeId]: [...currentTypeAttrs, newAttr]
+          };
+        } else {
+          // Remove attribute
+          return {
+            ...prev,
+            [typeId]: currentTypeAttrs.filter(ta => ta.attribute_id !== attributeId)
+          };
+        }
+      });
+      return;
+    }
+    
+    // Original database mode (when DB is available)
     try {
       if (isEnabled) {
-        // 속성 추가
         const maxOrder = typeAttributes[typeId]?.reduce((max, ta) => 
           Math.max(max, ta.display_order), 0) || 0;
         
@@ -183,7 +228,6 @@ export const ChannelTypeManagement: React.FC = () => {
         
         if (error) throw error;
       } else {
-        // 속성 제거
         const { error } = await supabase
           .from('channel_type_attributes')
           .delete()
@@ -200,6 +244,23 @@ export const ChannelTypeManagement: React.FC = () => {
   };
 
   const handleUpdateRequired = async (typeId: number, attributeId: number, isRequired: boolean) => {
+    // Always use fallback mode for now since DB is not configured
+    setTypeAttributes(prev => {
+      const currentTypeAttrs = prev[typeId] || [];
+      const updatedAttrs = currentTypeAttrs.map(ta => 
+        ta.attribute_id === attributeId 
+          ? { ...ta, is_required: isRequired }
+          : ta
+      );
+      
+      return {
+        ...prev,
+        [typeId]: updatedAttrs
+      };
+    });
+    return;
+    
+    // Original database mode (when DB is available)
     try {
       const { error } = await supabase
         .from('channel_type_attributes')
