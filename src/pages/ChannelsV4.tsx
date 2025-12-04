@@ -67,7 +67,12 @@ export const ChannelsV4: React.FC = () => {
       if (error) throw error;
       setChannelTypes(data || []);
     } catch (error) {
-      console.error('Error fetching channel types:', error);
+      // Using fallback data - database tables not yet created
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Using fallback channel types - database not configured yet');
+      } else {
+        console.error('Error fetching channel types:', error);
+      }
       // Fallback: 미리 정의된 채널유형 사용
       setChannelTypes([
         { id: 1, code: 'platform_service', name: '플랫폼서비스', color: 'blue' },
@@ -129,7 +134,12 @@ export const ChannelsV4: React.FC = () => {
       
       setChannels(data || []);
     } catch (error) {
-      console.error('Error fetching channels:', error);
+      // Using fallback data - database tables not yet created
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Using fallback channels - database not configured yet');
+      } else {
+        console.error('Error fetching channels:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -352,7 +362,7 @@ export const ChannelsV4: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
+        <div className="text-lg text-gray-600">채널 데이터를 로딩 중...</div>
       </div>
     );
   }

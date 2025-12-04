@@ -68,7 +68,12 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setChannelTypes(data || []);
     } catch (error) {
-      console.error('Error fetching channel types:', error);
+      // Using fallback data - database tables not yet created
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Using fallback channel types - database not configured yet');
+      } else {
+        console.error('Error fetching channel types:', error);
+      }
       
       // Fallback: 미리 정의된 채널유형 사용
       const fallbackTypes = [
@@ -109,7 +114,12 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setAttributes(data || []);
     } catch (error) {
-      console.error('Error fetching attributes:', error);
+      // Using fallback data - database tables not yet created
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Using fallback attributes - database not configured yet');
+      } else {
+        console.error('Error fetching attributes:', error);
+      }
       
       // Fallback: 통일된 채널유형속성 목록
       const fallbackAttributes = [
@@ -145,7 +155,12 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setTypeAttributes(prev => ({ ...prev, [typeId]: data || [] }));
     } catch (error) {
-      console.error('Error fetching type attributes:', error);
+      // Using fallback data - database tables not yet created
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Using fallback type attributes - database not configured yet');
+      } else {
+        console.error('Error fetching type attributes:', error);
+      }
     }
   };
 
@@ -323,7 +338,7 @@ export const ChannelTypeManagement: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">Loading...</div>
+        <div className="text-lg text-gray-600">채널유형 데이터를 로딩 중...</div>
       </div>
     );
   }
