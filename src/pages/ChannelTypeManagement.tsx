@@ -421,11 +421,10 @@ export const ChannelTypeManagement: React.FC = () => {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setSelectedType(type)}
-                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center justify-between ${
+                    <div className={`w-full px-4 py-3 cursor-pointer hover:bg-gray-50 flex items-center justify-between group ${
                         selectedType?.id === type.id ? 'bg-blue-50 border-l-4 border-blue-600' : ''
                       }`}
+                      onClick={() => setSelectedType(type)}
                     >
                       <div className="flex items-center space-x-3">
                         <div>
@@ -456,7 +455,7 @@ export const ChannelTypeManagement: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   )}
                 </div>
               ))}
