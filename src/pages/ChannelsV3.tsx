@@ -23,9 +23,7 @@ import {
   BarChart,
   Calendar,
   Eye,
-  Hash,
-  Building2,
-  Megaphone
+  Building2
 } from 'lucide-react';
 
 interface Channel {

@@ -8,7 +8,6 @@ import {
   Save,
   X,
   Search,
-  Filter,
   ChevronDown,
   Globe,
   Building,
@@ -23,8 +22,7 @@ import {
   Target,
   BarChart,
   Calendar,
-  Eye,
-  Hash
+  Eye
 } from 'lucide-react';
 
 interface ChannelType {

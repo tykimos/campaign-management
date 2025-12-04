@@ -20,7 +20,7 @@ import { format } from 'date-fns';
 export const Campaigns: React.FC = () => {
   const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [categories, setCategories] = useState<CampaignCategory[]>([]);
+  const [, setCategories] = useState<CampaignCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
@@ -260,7 +260,7 @@ export const Campaigns: React.FC = () => {
                   <div className="flex items-center">
                     {campaign.category ? (
                       <>
-                        <span className="mr-2">{getCategoryIcon(campaign.category_id)}</span>
+                        <span className="mr-2">{getCategoryIcon(campaign.category_id || null)}</span>
                         <span className="text-sm text-gray-900">{campaign.category.name}</span>
                       </>
                     ) : (
