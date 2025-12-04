@@ -6,8 +6,8 @@ import {
   Edit2, 
   Trash2, 
   ExternalLink,
-  Users,
-  Eye,
+  Save,
+  X,
   Search,
   Filter
 } from 'lucide-react';
@@ -17,19 +17,9 @@ export const Channels: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [showModal, setShowModal] = useState(false);
-  const [editingChannel, setEditingChannel] = useState<CampaignChannel | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    category: 'contest' as CampaignChannel['category'],
-    url: '',
-    member_count: 0,
-    avg_daily_views: 0,
-    description: '',
-    contact_info: '',
-    requirements: '',
-    is_active: true
-  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [newChannel, setNewChannel] = useState<Partial<CampaignChannel> | null>(null);
+  const [editingData, setEditingData] = useState<Partial<CampaignChannel>>({});
 
   useEffect(() => {
     fetchChannels();
@@ -51,27 +41,27 @@ export const Channels: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSave = async (channel: Partial<CampaignChannel>) => {
     try {
-      if (editingChannel) {
+      if (editingId) {
         const { error } = await supabase
           .from('campaign_channels')
-          .update(formData)
-          .eq('id', editingChannel.id);
+          .update(channel)
+          .eq('id', editingId);
         
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('campaign_channels')
-          .insert([formData]);
+          .insert([channel]);
         
         if (error) throw error;
       }
 
       fetchChannels();
-      handleCloseModal();
+      setEditingId(null);
+      setEditingData({});
+      setNewChannel(null);
     } catch (error) {
       console.error('Error saving channel:', error);
     }
@@ -93,36 +83,29 @@ export const Channels: React.FC = () => {
     }
   };
 
-  const handleEdit = (channel: CampaignChannel) => {
-    setEditingChannel(channel);
-    setFormData({
-      name: channel.name,
-      category: channel.category,
-      url: channel.url || '',
-      member_count: channel.member_count || 0,
-      avg_daily_views: channel.avg_daily_views || 0,
-      description: channel.description || '',
-      contact_info: channel.contact_info || '',
-      requirements: channel.requirements || '',
-      is_active: channel.is_active
-    });
-    setShowModal(true);
+  const startEdit = (channel: CampaignChannel) => {
+    setEditingId(channel.id);
+    setEditingData(channel);
+    setNewChannel(null);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingChannel(null);
-    setFormData({
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingData({});
+    setNewChannel(null);
+  };
+
+  const startNewChannel = () => {
+    setNewChannel({
       name: '',
       category: 'contest',
       url: '',
       member_count: 0,
       avg_daily_views: 0,
       description: '',
-      contact_info: '',
-      requirements: '',
       is_active: true
     });
+    setEditingId(null);
   };
 
   const filteredChannels = channels.filter(channel => {
@@ -131,16 +114,6 @@ export const Channels: React.FC = () => {
     const matchesCategory = categoryFilter === 'all' || channel.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
-
-  const getCategoryBadgeColor = (category: string) => {
-    const colors: Record<string, string> = {
-      contest: 'bg-yellow-100 text-yellow-800',
-      community: 'bg-green-100 text-green-800',
-      sns: 'bg-purple-100 text-purple-800',
-      event: 'bg-pink-100 text-pink-800'
-    };
-    return colors[category] || 'bg-gray-100 text-gray-800';
-  };
 
   const categoryNames: Record<string, string> = {
     contest: '공모전',
@@ -165,7 +138,7 @@ export const Channels: React.FC = () => {
           <p className="text-gray-600 mt-2">캠페인 게재 채널을 관리합니다</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={startNewChannel}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
         >
           <Plus size={20} />
@@ -205,216 +178,285 @@ export const Channels: React.FC = () => {
         </div>
       </div>
 
-      {/* Channels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredChannels.map((channel) => (
-          <div key={channel.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{channel.name}</h3>
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getCategoryBadgeColor(channel.category)}`}>
-                  {categoryNames[channel.category]}
-                </span>
-              </div>
-
-              {channel.description && (
-                <p className="text-gray-600 text-sm mb-4">{channel.description}</p>
+      {/* Channels Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  채널명
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  카테고리
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  URL
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  회원수
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  일평균 조회수
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  설명
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  상태
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  작업
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {/* New Channel Row */}
+              {newChannel && (
+                <tr className="bg-green-50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="text"
+                      value={newChannel.name || ''}
+                      onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                      placeholder="채널명"
+                      autoFocus
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={newChannel.category || 'contest'}
+                      onChange={(e) => setNewChannel({ ...newChannel, category: e.target.value as CampaignChannel['category'] })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                    >
+                      <option value="contest">공모전</option>
+                      <option value="community">커뮤니티</option>
+                      <option value="sns">SNS</option>
+                      <option value="event">이벤트</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="url"
+                      value={newChannel.url || ''}
+                      onChange={(e) => setNewChannel({ ...newChannel, url: e.target.value })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                      placeholder="https://"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="number"
+                      value={newChannel.member_count || 0}
+                      onChange={(e) => setNewChannel({ ...newChannel, member_count: parseInt(e.target.value) || 0 })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="number"
+                      value={newChannel.avg_daily_views || 0}
+                      onChange={(e) => setNewChannel({ ...newChannel, avg_daily_views: parseInt(e.target.value) || 0 })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="text"
+                      value={newChannel.description || ''}
+                      onChange={(e) => setNewChannel({ ...newChannel, description: e.target.value })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                      placeholder="설명"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={newChannel.is_active ? 'active' : 'inactive'}
+                      onChange={(e) => setNewChannel({ ...newChannel, is_active: e.target.value === 'active' })}
+                      className="w-full px-2 py-1 border border-gray-300 rounded"
+                    >
+                      <option value="active">활성</option>
+                      <option value="inactive">비활성</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center space-x-1">
+                      <button
+                        onClick={() => handleSave(newChannel)}
+                        className="p-1 text-green-600 hover:text-green-900"
+                      >
+                        <Save size={18} />
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="p-1 text-red-600 hover:text-red-900"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               )}
 
-              <div className="space-y-2 mb-4">
-                {channel.member_count && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Users size={16} className="mr-2" />
-                    <span>{channel.member_count.toLocaleString()} 회원</span>
-                  </div>
-                )}
-                {channel.avg_daily_views && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Eye size={16} className="mr-2" />
-                    <span>일 평균 {channel.avg_daily_views.toLocaleString()} 조회</span>
-                  </div>
-                )}
-                {channel.url && (
-                  <a
-                    href={channel.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    <ExternalLink size={16} className="mr-2" />
-                    <span>사이트 방문</span>
-                  </a>
-                )}
-              </div>
+              {/* Existing Channels */}
+              {filteredChannels.map((channel) => (
+                <tr key={channel.id} className={editingId === channel.id ? 'bg-yellow-50' : ''}>
+                  <td className="px-4 py-3 text-sm">
+                    {editingId === channel.id ? (
+                      <input
+                        type="text"
+                        value={editingData.name || ''}
+                        onChange={(e) => setEditingData({ ...editingData, name: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                      />
+                    ) : (
+                      <span className="font-medium text-gray-900">{channel.name}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {editingId === channel.id ? (
+                      <select
+                        value={editingData.category || 'contest'}
+                        onChange={(e) => setEditingData({ ...editingData, category: e.target.value as CampaignChannel['category'] })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                      >
+                        <option value="contest">공모전</option>
+                        <option value="community">커뮤니티</option>
+                        <option value="sns">SNS</option>
+                        <option value="event">이벤트</option>
+                      </select>
+                    ) : (
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100">
+                        {categoryNames[channel.category]}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {editingId === channel.id ? (
+                      <input
+                        type="url"
+                        value={editingData.url || ''}
+                        onChange={(e) => setEditingData({ ...editingData, url: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                      />
+                    ) : (
+                      channel.url && (
+                        <a
+                          href={channel.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 flex items-center"
+                        >
+                          <ExternalLink size={14} className="mr-1" />
+                          <span className="truncate max-w-xs">{channel.url}</span>
+                        </a>
+                      )
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    {editingId === channel.id ? (
+                      <input
+                        type="number"
+                        value={editingData.member_count || 0}
+                        onChange={(e) => setEditingData({ ...editingData, member_count: parseInt(e.target.value) || 0 })}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      />
+                    ) : (
+                      channel.member_count?.toLocaleString() || '-'
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    {editingId === channel.id ? (
+                      <input
+                        type="number"
+                        value={editingData.avg_daily_views || 0}
+                        onChange={(e) => setEditingData({ ...editingData, avg_daily_views: parseInt(e.target.value) || 0 })}
+                        className="w-24 px-2 py-1 border border-gray-300 rounded"
+                      />
+                    ) : (
+                      channel.avg_daily_views?.toLocaleString() || '-'
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    {editingId === channel.id ? (
+                      <input
+                        type="text"
+                        value={editingData.description || ''}
+                        onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                      />
+                    ) : (
+                      <span className="truncate max-w-xs block">{channel.description}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {editingId === channel.id ? (
+                      <select
+                        value={editingData.is_active ? 'active' : 'inactive'}
+                        onChange={(e) => setEditingData({ ...editingData, is_active: e.target.value === 'active' })}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded"
+                      >
+                        <option value="active">활성</option>
+                        <option value="inactive">비활성</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        channel.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {channel.is_active ? '활성' : '비활성'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="flex justify-center space-x-1">
+                      {editingId === channel.id ? (
+                        <>
+                          <button
+                            onClick={() => handleSave(editingData)}
+                            className="p-1 text-green-600 hover:text-green-900"
+                          >
+                            <Save size={18} />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="p-1 text-gray-600 hover:text-gray-900"
+                          >
+                            <X size={18} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEdit(channel)}
+                            className="p-1 text-blue-600 hover:text-blue-900"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(channel.id)}
+                            className="p-1 text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-              <div className="flex justify-between items-center pt-4 border-t">
-                <span className={`text-sm font-medium ${channel.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                  {channel.is_active ? '활성' : '비활성'}
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEdit(channel)}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(channel.id)}
-                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <h3 className="text-lg font-semibold mb-4">
-              {editingChannel ? '채널 수정' : '새 채널 추가'}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    채널명 *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    카테고리 *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as CampaignChannel['category'] })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="contest">공모전</option>
-                    <option value="community">커뮤니티</option>
-                    <option value="sns">SNS</option>
-                    <option value="event">이벤트</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    회원 수
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.member_count}
-                    onChange={(e) => setFormData({ ...formData, member_count: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    일 평균 조회수
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.avg_daily_views}
-                    onChange={(e) => setFormData({ ...formData, avg_daily_views: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  설명
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  담당자 정보
-                </label>
-                <input
-                  type="text"
-                  value={formData.contact_info}
-                  onChange={(e) => setFormData({ ...formData, contact_info: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  게재 요구사항
-                </label>
-                <textarea
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="mr-2"
-                />
-                <label htmlFor="is_active" className="text-sm text-gray-700">
-                  활성 상태
-                </label>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  {editingChannel ? '수정' : '추가'}
-                </button>
-              </div>
-            </form>
+        {/* Summary */}
+        <div className="bg-gray-50 px-6 py-3 border-t">
+          <div className="text-sm text-gray-600">
+            총 {filteredChannels.length}개 채널 
+            {categoryFilter !== 'all' && ` (${categoryNames[categoryFilter]} 카테고리)`}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
