@@ -10,7 +10,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
@@ -31,6 +32,7 @@ export const Layout: React.FC = () => {
     { to: '/', icon: Home, label: '대시보드' },
     { to: '/campaigns', icon: Megaphone, label: '캠페인 관리' },
     { to: '/channels', icon: Users, label: '채널 관리' },
+    { to: '/channel-types', icon: Layers, label: '채널 유형 관리' },
     { to: '/posts', icon: FileText, label: '게재 현황' },
     { to: '/analytics', icon: BarChart3, label: '성과 분석' },
     { to: '/settings', icon: Settings, label: '설정' },
