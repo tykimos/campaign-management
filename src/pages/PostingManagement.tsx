@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock, Megaphone } from 'lucide-react';
 
 interface Campaign {
   id: number;
@@ -234,6 +234,27 @@ export const PostingManagement: React.FC = () => {
     }
   };
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active':
+        return '진행중';
+      case 'completed':
+        return '완료';
+      default:
+        return '준비중';
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -242,223 +263,248 @@ export const PostingManagement: React.FC = () => {
         <p className="text-gray-600 mt-2">캠페인별 채널 게재 현황을 관리합니다.</p>
       </div>
 
-      {/* Campaign Selection */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">캠페인 선택</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {campaigns.map((campaign) => (
-            <button
-              key={campaign.id}
-              onClick={() => setSelectedCampaign(campaign)}
-              className={`p-4 rounded-lg border-2 text-left transition-all ${
-                selectedCampaign?.id === campaign.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium">{campaign.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{campaign.description}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    <Calendar size={14} />
-                    <span>{campaign.start_date} ~ {campaign.end_date}</span>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  campaign.status === 'active' 
-                    ? 'bg-green-100 text-green-800'
-                    : campaign.status === 'completed'
-                    ? 'bg-gray-100 text-gray-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {campaign.status === 'active' ? '진행중' : 
-                   campaign.status === 'completed' ? '완료' : '준비중'}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {selectedCampaign && (
-        <>
-          {/* Campaign Stats */}
-          {campaignStats && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">캠페인 통계</h2>
-              <div className="grid grid-cols-5 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{campaignStats.total}</div>
-                  <div className="text-sm text-gray-500">전체 채널</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{campaignStats.completed}</div>
-                  <div className="text-sm text-gray-500">완료</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">{campaignStats.in_progress}</div>
-                  <div className="text-sm text-gray-500">진행중</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-600">{campaignStats.pending}</div>
-                  <div className="text-sm text-gray-500">대기</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">{campaignStats.failed}</div>
-                  <div className="text-sm text-gray-500">실패</div>
-                </div>
-              </div>
+      <div className="bg-white rounded-lg shadow">
+        <div className="flex">
+          {/* Left Sidebar - Campaign List */}
+          <div className="w-80 border-r">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">캠페인 선택</h2>
             </div>
-          )}
-
-          {/* Channel Type Selection */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-semibold">채널 유형별 게재 관리</h2>
-            </div>
-            
-            <div className="flex">
-              {/* Channel Types */}
-              <div className="w-64 border-r p-4">
-                <div className="space-y-2">
-                  {channelTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => setSelectedType(type)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                        selectedType?.id === type.id
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="font-medium">{type.name}</span>
-                      <ChevronRight size={16} className={`transition-transform ${
-                        selectedType?.id === type.id ? 'rotate-90' : ''
-                      }`} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Channels */}
-              <div className="flex-1 p-6">
-                {selectedType ? (
-                  loading ? (
-                    <div className="text-center py-8">로딩 중...</div>
-                  ) : channels.length > 0 ? (
-                    <div className="space-y-4">
-                      {channels.map((channel) => {
-                        const posting = postings[channel.id];
-                        return (
-                          <div key={channel.id} className="border rounded-lg p-4">
-                            <div className="flex items-start gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-3">
-                                  {getStatusIcon(posting?.status)}
-                                  <h3 className="font-medium text-lg">{channel.name}</h3>
-                                  {channel.url && (
-                                    <a
-                                      href={channel.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:text-blue-800 text-sm"
-                                    >
-                                      링크
-                                    </a>
-                                  )}
-                                  {channel.member_count && (
-                                    <span className="text-sm text-gray-500">
-                                      회원 {channel.member_count.toLocaleString()}명
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                      게재 상태
-                                    </label>
-                                    <select
-                                      value={posting?.status || 'pending'}
-                                      onChange={(e) => handlePostingUpdate(channel.id, 'status', e.target.value)}
-                                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                      <option value="pending">대기</option>
-                                      <option value="in_progress">진행중</option>
-                                      <option value="completed">완료</option>
-                                      <option value="failed">실패</option>
-                                    </select>
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                      게재일
-                                    </label>
-                                    <input
-                                      type="date"
-                                      value={posting?.posted_date || ''}
-                                      onChange={(e) => handlePostingUpdate(channel.id, 'posted_date', e.target.value)}
-                                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="mt-3">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    결과
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={posting?.result || ''}
-                                    onChange={(e) => handlePostingUpdate(channel.id, 'result', e.target.value)}
-                                    placeholder="게재 결과를 입력하세요"
-                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-
-                                <div className="mt-3">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    메모
-                                  </label>
-                                  <textarea
-                                    value={posting?.memo || ''}
-                                    onChange={(e) => handlePostingUpdate(channel.id, 'memo', e.target.value)}
-                                    placeholder="메모를 입력하세요"
-                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    rows={2}
-                                  />
-                                </div>
-                              </div>
-
-                              <button
-                                onClick={() => savePosting(channel.id)}
-                                disabled={saving}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
-                              >
-                                <Save size={16} />
-                                저장
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+            <div className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
+              {campaigns.map((campaign) => (
+                <button
+                  key={campaign.id}
+                  onClick={() => setSelectedCampaign(campaign)}
+                  className={`w-full text-left p-4 rounded-lg transition-colors flex items-start justify-between ${
+                    selectedCampaign?.id === campaign.id
+                      ? 'bg-blue-50 border-2 border-blue-500'
+                      : 'hover:bg-gray-50 border-2 border-transparent'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <h3 className="font-medium">{campaign.name}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{campaign.description}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <Calendar size={14} />
+                      <span>{campaign.start_date} ~ {campaign.end_date}</span>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      이 유형에 등록된 채널이 없습니다.
-                    </div>
-                  )
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    좌측에서 채널 유형을 선택해주세요.
                   </div>
-                )}
-              </div>
+                  <div className="ml-3">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(campaign.status)}`}>
+                      {getStatusLabel(campaign.status)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+              {campaigns.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Megaphone size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>등록된 캠페인이 없습니다.</p>
+                </div>
+              )}
             </div>
           </div>
-        </>
-      )}
+
+          {/* Right Content Area */}
+          <div className="flex-1">
+            {selectedCampaign ? (
+              <>
+                {/* Campaign Header */}
+                <div className="p-6 border-b">
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold">{selectedCampaign.name}</h2>
+                    <p className="text-gray-600 mt-1">{selectedCampaign.description}</p>
+                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar size={16} />
+                        <span>기간: {selectedCampaign.start_date} ~ {selectedCampaign.end_date}</span>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs ${getStatusBadgeClass(selectedCampaign.status)}`}>
+                        {getStatusLabel(selectedCampaign.status)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Campaign Stats */}
+                  {campaignStats && (
+                    <div className="grid grid-cols-5 gap-4 mt-6">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-gray-900">{campaignStats.total}</div>
+                        <div className="text-sm text-gray-500">전체 채널</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">{campaignStats.completed}</div>
+                        <div className="text-sm text-gray-500">완료</div>
+                      </div>
+                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                        <div className="text-2xl font-bold text-yellow-600">{campaignStats.in_progress}</div>
+                        <div className="text-sm text-gray-500">진행중</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-gray-600">{campaignStats.pending}</div>
+                        <div className="text-sm text-gray-500">대기</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 rounded-lg">
+                        <div className="text-2xl font-bold text-red-600">{campaignStats.failed}</div>
+                        <div className="text-sm text-gray-500">실패</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Channel Type Selection */}
+                <div className="flex">
+                  {/* Channel Types */}
+                  <div className="w-64 border-r p-4">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">채널 유형</h3>
+                    <div className="space-y-2">
+                      {channelTypes.map((type) => (
+                        <button
+                          key={type.id}
+                          onClick={() => setSelectedType(type)}
+                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
+                            selectedType?.id === type.id
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="font-medium text-sm">{type.name}</span>
+                          <ChevronRight size={16} className={`transition-transform ${
+                            selectedType?.id === type.id ? 'rotate-90' : ''
+                          }`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Channels */}
+                  <div className="flex-1 p-6">
+                    {selectedType ? (
+                      loading ? (
+                        <div className="text-center py-8">로딩 중...</div>
+                      ) : channels.length > 0 ? (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold mb-4">{selectedType.name} 채널 게재 관리</h3>
+                          {channels.map((channel) => {
+                            const posting = postings[channel.id];
+                            return (
+                              <div key={channel.id} className="border rounded-lg p-4">
+                                <div className="flex items-start gap-4">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-3">
+                                      {getStatusIcon(posting?.status)}
+                                      <h3 className="font-medium text-lg">{channel.name}</h3>
+                                      {channel.url && (
+                                        <a
+                                          href={channel.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:text-blue-800 text-sm"
+                                        >
+                                          링크
+                                        </a>
+                                      )}
+                                      {channel.member_count && (
+                                        <span className="text-sm text-gray-500">
+                                          회원 {channel.member_count.toLocaleString()}명
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          게재 상태
+                                        </label>
+                                        <select
+                                          value={posting?.status || 'pending'}
+                                          onChange={(e) => handlePostingUpdate(channel.id, 'status', e.target.value)}
+                                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                          <option value="pending">대기</option>
+                                          <option value="in_progress">진행중</option>
+                                          <option value="completed">완료</option>
+                                          <option value="failed">실패</option>
+                                        </select>
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          게재일
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={posting?.posted_date || ''}
+                                          onChange={(e) => handlePostingUpdate(channel.id, 'posted_date', e.target.value)}
+                                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="mt-3">
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        결과
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={posting?.result || ''}
+                                        onChange={(e) => handlePostingUpdate(channel.id, 'result', e.target.value)}
+                                        placeholder="게재 결과를 입력하세요"
+                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      />
+                                    </div>
+
+                                    <div className="mt-3">
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        메모
+                                      </label>
+                                      <textarea
+                                        value={posting?.memo || ''}
+                                        onChange={(e) => handlePostingUpdate(channel.id, 'memo', e.target.value)}
+                                        placeholder="메모를 입력하세요"
+                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        rows={2}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    onClick={() => savePosting(channel.id)}
+                                    disabled={saving}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+                                  >
+                                    <Save size={16} />
+                                    저장
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          이 유형에 등록된 채널이 없습니다.
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        좌측에서 채널 유형을 선택해주세요.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-[600px] text-gray-500">
+                <div className="text-center">
+                  <Megaphone size={48} className="mx-auto mb-4 opacity-30" />
+                  <p>좌측에서 캠페인을 선택해주세요.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
