@@ -10,9 +10,7 @@ import {
   Eye,
   Users,
   MousePointer,
-  TrendingUp,
-  Calendar,
-  FileText
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';

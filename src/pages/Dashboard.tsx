@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Campaign, CampaignPost } from '../types';
 import { 
-  TrendingUp, 
   Users, 
   Eye, 
   Target,
-  Calendar,
   Activity
 } from 'lucide-react';
 import {

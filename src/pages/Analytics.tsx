@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Campaign, CampaignPost, CampaignChannel } from '../types';
+import { Campaign, CampaignPost } from '../types';
 import {
-  TrendingUp,
   Users,
   Eye,
   Target,
-  Calendar,
   Award,
-  AlertCircle,
   Activity
 } from 'lucide-react';
 import {
@@ -24,20 +21,13 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis
+  Cell
 } from 'recharts';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { format, subDays, startOfMonth } from 'date-fns';
 
 export const Analytics: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [posts, setPosts] = useState<CampaignPost[]>([]);
-  const [channels, setChannels] = useState<CampaignChannel[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30days');
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
@@ -53,22 +43,18 @@ export const Analytics: React.FC = () => {
       else if (dateRange === 'month') startDate = startOfMonth(new Date());
       else if (dateRange === '90days') startDate = subDays(new Date(), 90);
 
-      const [campaignsRes, postsRes, channelsRes] = await Promise.all([
+      const [campaignsRes, postsRes] = await Promise.all([
         supabase
           .from('campaigns')
           .select('*, category:campaign_categories(*)'),
         supabase
           .from('campaign_posts')
           .select('*, campaign:campaigns(*), channel:campaign_channels(*)')
-          .gte('posted_date', startDate.toISOString()),
-        supabase
-          .from('campaign_channels')
-          .select('*')
+          .gte('posted_date', startDate.toISOString())
       ]);
 
       setCampaigns(campaignsRes.data || []);
       setPosts(postsRes.data || []);
-      setChannels(channelsRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -291,7 +277,7 @@ export const Analytics: React.FC = () => {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {categoryData.map((entry, index) => (
+                {categoryData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

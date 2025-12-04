@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { User, Lock, Bell, Database, Save, AlertCircle } from 'lucide-react';
+import { User, Lock, Database, Save, AlertCircle } from 'lucide-react';
 
 export const Settings: React.FC = () => {
   const { user } = useAuth();

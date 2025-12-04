@@ -7,13 +7,11 @@ import {
   Edit2,
   Trash2,
   Calendar,
-  Target,
   DollarSign,
   Eye,
   Users
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 
 export const Campaigns: React.FC = () => {
   const { user } = useAuth();
