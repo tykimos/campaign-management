@@ -68,37 +68,8 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setChannelTypes(data || []);
     } catch (error) {
-      // Using fallback data - database tables not yet created
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Using fallback channel types - database not configured yet');
-      } else {
-        console.error('Error fetching channel types:', error);
-      }
-      
-      // Fallback: 미리 정의된 채널유형 사용
-      const fallbackTypes = [
-        { id: 1, code: 'platform_service', name: '플랫폼서비스', description: '온라인 플랫폼 및 서비스', color: 'blue', display_order: 1 },
-        { id: 2, code: 'government', name: '정부기관', description: '정부 및 공공기관', color: 'gray', display_order: 2 },
-        { id: 3, code: 'competition', name: '공모전', description: '공모전 및 대회', color: 'yellow', display_order: 3 },
-        { id: 4, code: 'portal_cafe', name: '포털카페', description: '네이버/다음 카페', color: 'amber', display_order: 4 },
-        { id: 5, code: 'sns_group', name: 'SNS그룹', description: '페이스북, 인스타그램 등', color: 'purple', display_order: 5 },
-        { id: 6, code: 'community', name: '커뮤니티', description: '온라인 커뮤니티', color: 'green', display_order: 6 },
-        { id: 7, code: 'open_chat', name: '오픈단톡방', description: '카카오톡 오픈채팅', color: 'pink', display_order: 7 },
-        { id: 8, code: 'discord', name: '디스코드', description: '디스코드 서버', color: 'indigo', display_order: 8 },
-        { id: 9, code: 'official_graduate', name: '공문-대학원', description: '대학원 공식 채널', color: 'blue', display_order: 9 },
-        { id: 10, code: 'official_university', name: '공문-대학교', description: '대학교 공식 채널', color: 'blue', display_order: 10 },
-        { id: 11, code: 'official_highschool', name: '공문-고등학교', description: '고등학교 공식 채널', color: 'blue', display_order: 11 },
-        { id: 12, code: 'dm_academic', name: 'DM-학회', description: '학회 DM 채널', color: 'red', display_order: 12 },
-        { id: 13, code: 'dm_association', name: 'DM-협회', description: '협회 DM 채널', color: 'red', display_order: 13 },
-        { id: 14, code: 'dm_university', name: 'DM-대학', description: '대학 DM 채널', color: 'red', display_order: 14 },
-        { id: 15, code: 'outdoor_university', name: '옥외광고-대학', description: '대학 옥외광고', color: 'teal', display_order: 15 },
-        { id: 16, code: 'outdoor_nst', name: '옥외광고-출연연NST', description: '출연연 옥외광고', color: 'teal', display_order: 16 },
-        { id: 17, code: 'outdoor_partner', name: '옥외광고-협력기관', description: '협력기관 옥외광고', color: 'teal', display_order: 17 },
-        { id: 18, code: 'performance', name: '퍼포먼스', description: '퍼포먼스 마케팅', color: 'cyan', display_order: 18 },
-        { id: 19, code: 'event_site', name: '이벤트사이트', description: '이벤트 사이트', color: 'amber', display_order: 19 }
-      ];
-      
-      setChannelTypes(fallbackTypes);
+      console.error('Error fetching channel types:', error);
+      alert('채널 유형을 불러오는데 실패했습니다. 데이터베이스 연결을 확인해주세요.');
     } finally {
       setLoading(false);
     }
@@ -114,30 +85,7 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setAttributes(data || []);
     } catch (error) {
-      // Using fallback data - database tables not yet created
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Using fallback attributes - database not configured yet');
-      } else {
-        console.error('Error fetching attributes:', error);
-      }
-      
-      // Fallback: 통일된 채널유형속성 목록
-      const fallbackAttributes = [
-        { id: 1, code: 'name', name: '이름', data_type: 'text', display_order: 1 },
-        { id: 2, code: 'registration_date', name: '등록일', data_type: 'date', display_order: 2 },
-        { id: 3, code: 'update_date', name: '갱신일', data_type: 'date', display_order: 3 },
-        { id: 4, code: 'memo', name: '메모', data_type: 'text', display_order: 4 },
-        { id: 5, code: 'member_count', name: '인원', data_type: 'number', display_order: 5 },
-        { id: 6, code: 'url', name: 'URL', data_type: 'url', display_order: 6 },
-        { id: 7, code: 'email', name: '이메일', data_type: 'email', display_order: 7 },
-        { id: 8, code: 'contact_person', name: '담당자', data_type: 'text', display_order: 8 },
-        { id: 9, code: 'contact_phone', name: '연락처', data_type: 'text', display_order: 9 },
-        { id: 10, code: 'main_phone', name: '대표전화', data_type: 'text', display_order: 10 },
-        { id: 11, code: 'address', name: '주소', data_type: 'text', display_order: 11 },
-        { id: 12, code: 'is_active', name: '비활성화', data_type: 'boolean', display_order: 12 }
-      ];
-      
-      setAttributes(fallbackAttributes);
+      console.error('Error fetching attributes:', error);
     }
   };
 
@@ -155,28 +103,11 @@ export const ChannelTypeManagement: React.FC = () => {
       if (error) throw error;
       setTypeAttributes(prev => ({ ...prev, [typeId]: data || [] }));
     } catch (error) {
-      // Using fallback data - database tables not yet created
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Using fallback type attributes - database not configured yet');
-        
-        // Fallback: Initialize with default visible attributes (name, registration_date, update_date, memo)
-        const fallbackTypeAttributes: ChannelTypeAttribute[] = [
-          { channel_type_id: typeId, attribute_id: 1, is_required: true, display_order: 1 }, // 이름
-          { channel_type_id: typeId, attribute_id: 2, is_required: false, display_order: 2 }, // 등록일
-          { channel_type_id: typeId, attribute_id: 3, is_required: false, display_order: 3 }, // 갱신일
-          { channel_type_id: typeId, attribute_id: 4, is_required: false, display_order: 4 }, // 메모
-        ];
-        
-        setTypeAttributes(prev => ({ ...prev, [typeId]: fallbackTypeAttributes }));
-      } else {
-        console.error('Error fetching type attributes:', error);
-      }
+      console.error('Error fetching type attributes:', error);
     }
   };
 
-
   const handleToggleTypeAttribute = async (typeId: number, attributeId: number, isEnabled: boolean) => {
-    // Try database first, fall back to local state if DB is not available
     try {
       if (isEnabled) {
         const maxOrder = typeAttributes[typeId]?.reduce((max, ta) => 
@@ -204,48 +135,13 @@ export const ChannelTypeManagement: React.FC = () => {
       
       // Refresh from database
       fetchTypeAttributes(typeId);
-      return;
     } catch (error) {
-      // Fall back to local state management if database is not available
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Database not available, using local state management');
-        
-        // Handle in local state (fallback mode)
-        setTypeAttributes(prev => {
-          const currentTypeAttrs = prev[typeId] || [];
-          
-          if (isEnabled) {
-            // Add attribute
-            const maxOrder = currentTypeAttrs.reduce((max, ta) => 
-              Math.max(max, ta.display_order), 0) || 0;
-            
-            const newAttr: ChannelTypeAttribute = {
-              channel_type_id: typeId,
-              attribute_id: attributeId,
-              is_required: false,
-              display_order: maxOrder + 1
-            };
-            
-            return {
-              ...prev,
-              [typeId]: [...currentTypeAttrs, newAttr]
-            };
-          } else {
-            // Remove attribute
-            return {
-              ...prev,
-              [typeId]: currentTypeAttrs.filter(ta => ta.attribute_id !== attributeId)
-            };
-          }
-        });
-      } else {
-        console.error('Error toggling type attribute:', error);
-      }
+      console.error('Error toggling type attribute:', error);
+      alert('속성 변경에 실패했습니다.');
     }
   };
 
   const handleUpdateRequired = async (typeId: number, attributeId: number, isRequired: boolean) => {
-    // Try database first, fall back to local state if DB is not available
     try {
       const { error } = await supabase
         .from('channel_type_attributes')
@@ -257,28 +153,9 @@ export const ChannelTypeManagement: React.FC = () => {
       
       // Refresh from database
       fetchTypeAttributes(typeId);
-      return;
     } catch (error) {
-      // Fall back to local state management if database is not available
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Database not available, using local state management');
-        
-        setTypeAttributes(prev => {
-          const currentTypeAttrs = prev[typeId] || [];
-          const updatedAttrs = currentTypeAttrs.map(ta => 
-            ta.attribute_id === attributeId 
-              ? { ...ta, is_required: isRequired }
-              : ta
-          );
-          
-          return {
-            ...prev,
-            [typeId]: updatedAttrs
-          };
-        });
-      } else {
-        console.error('Error updating required status:', error);
-      }
+      console.error('Error updating required status:', error);
+      alert('필수 설정 변경에 실패했습니다.');
     }
   };
 
@@ -291,7 +168,13 @@ export const ChannelTypeManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('channel_types')
-        .insert([newType]);
+        .insert([{
+          code: newType.code,
+          name: newType.name,
+          description: newType.description,
+          color: newType.color || 'gray',
+          display_order: newType.display_order || channelTypes.length + 1
+        }]);
       
       if (error) throw error;
       
@@ -342,17 +225,12 @@ export const ChannelTypeManagement: React.FC = () => {
       .limit(1);
 
     if (checkError) {
-      // Try old table
-      const { data: oldChannels } = await supabase
-        .from('campaign_channels')
-        .select('id')
-        .limit(1);
-      
-      if (oldChannels && oldChannels.length > 0) {
-        alert('이 유형을 사용 중인 채널이 있어 삭제할 수 없습니다.');
-        return;
-      }
-    } else if (channels && channels.length > 0) {
+      console.error('Error checking channels:', checkError);
+      alert('삭제 가능 여부를 확인할 수 없습니다.');
+      return;
+    }
+
+    if (channels && channels.length > 0) {
       alert('이 유형을 사용 중인 채널이 있어 삭제할 수 없습니다.');
       return;
     }
@@ -451,6 +329,13 @@ export const ChannelTypeManagement: React.FC = () => {
                     onChange={(e) => setNewType({ ...newType, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
+                  <input
+                    type="text"
+                    placeholder="설명 (선택사항)"
+                    value={newType.description || ''}
+                    onChange={(e) => setNewType({ ...newType, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
                   <div className="flex space-x-2">
                     <button
                       onClick={handleSaveType}
@@ -487,6 +372,13 @@ export const ChannelTypeManagement: React.FC = () => {
                           onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />
+                        <input
+                          type="text"
+                          placeholder="설명"
+                          value={editingType.description || ''}
+                          onChange={(e) => setEditingType({ ...editingType, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleUpdateType(editingType)}
@@ -513,6 +405,9 @@ export const ChannelTypeManagement: React.FC = () => {
                         <div>
                           <div className="font-medium">{type.name}</div>
                           <div className="text-sm text-gray-500">{type.code}</div>
+                          {type.description && (
+                            <div className="text-xs text-gray-400 mt-1">{type.description}</div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -542,6 +437,11 @@ export const ChannelTypeManagement: React.FC = () => {
                   )}
                 </div>
               ))}
+              {channelTypes.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  채널유형이 없습니다. 새로 추가해주세요.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -560,7 +460,6 @@ export const ChannelTypeManagement: React.FC = () => {
               </div>
 
               <div className="p-4">
-                {/* 통일된 속성 목록 */}
                 <div>
                   <div className="mb-4">
                     <h3 className="text-lg font-medium text-gray-900">속성 설정</h3>
@@ -633,7 +532,6 @@ export const ChannelTypeManagement: React.FC = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };

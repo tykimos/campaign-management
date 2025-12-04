@@ -67,34 +67,8 @@ export const ChannelsV4: React.FC = () => {
       if (error) throw error;
       setChannelTypes(data || []);
     } catch (error) {
-      // Using fallback data - database tables not yet created
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Using fallback channel types - database not configured yet');
-      } else {
-        console.error('Error fetching channel types:', error);
-      }
-      // Fallback: 미리 정의된 채널유형 사용
-      setChannelTypes([
-        { id: 1, code: 'platform_service', name: '플랫폼서비스', color: 'blue' },
-        { id: 2, code: 'government', name: '정부기관', color: 'gray' },
-        { id: 3, code: 'competition', name: '공모전', color: 'yellow' },
-        { id: 4, code: 'portal_cafe', name: '포털카페', color: 'amber' },
-        { id: 5, code: 'sns_group', name: 'SNS그룹', color: 'purple' },
-        { id: 6, code: 'community', name: '커뮤니티', color: 'green' },
-        { id: 7, code: 'open_chat', name: '오픈단톡방', color: 'pink' },
-        { id: 8, code: 'discord', name: '디스코드', color: 'indigo' },
-        { id: 9, code: 'official_graduate', name: '공문-대학원', color: 'blue' },
-        { id: 10, code: 'official_university', name: '공문-대학교', color: 'blue' },
-        { id: 11, code: 'official_highschool', name: '공문-고등학교', color: 'blue' },
-        { id: 12, code: 'dm_academic', name: 'DM-학회', color: 'red' },
-        { id: 13, code: 'dm_association', name: 'DM-협회', color: 'red' },
-        { id: 14, code: 'dm_university', name: 'DM-대학', color: 'red' },
-        { id: 15, code: 'outdoor_university', name: '옥외광고-대학', color: 'teal' },
-        { id: 16, code: 'outdoor_nst', name: '옥외광고-출연연NST', color: 'teal' },
-        { id: 17, code: 'outdoor_partner', name: '옥외광고-협력기관', color: 'teal' },
-        { id: 18, code: 'performance', name: '퍼포먼스', color: 'cyan' },
-        { id: 19, code: 'event_site', name: '이벤트사이트', color: 'amber' }
-      ]);
+      console.error('Error fetching channel types:', error);
+      alert('채널 유형을 불러오는데 실패했습니다. 데이터베이스 연결을 확인해주세요.');
     }
   };
 
@@ -134,12 +108,7 @@ export const ChannelsV4: React.FC = () => {
       
       setChannels(data || []);
     } catch (error) {
-      // Using fallback data - database tables not yet created
-      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
-        console.log('Using fallback channels - database not configured yet');
-      } else {
-        console.error('Error fetching channels:', error);
-      }
+      console.error('Error fetching channels:', error);
     } finally {
       setLoading(false);
     }
