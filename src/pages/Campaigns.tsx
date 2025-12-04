@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { updateCampaignWithWorkaround } from '../lib/supabaseAdmin';
 import { Campaign, CampaignCategory } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -90,10 +91,8 @@ export const Campaigns: React.FC = () => {
 
     try {
       if (editingCampaign) {
-        const { error } = await supabase
-          .from('campaigns')
-          .update(campaignData)
-          .eq('id', editingCampaign.id);
+        // Use workaround for updates to handle RLS issues
+        const { error } = await updateCampaignWithWorkaround(editingCampaign.id, campaignData);
 
         if (error) throw error;
       } else {
