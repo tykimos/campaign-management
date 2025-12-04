@@ -72,6 +72,31 @@ export const ChannelTypeManagement: React.FC = () => {
       setChannelTypes(data || []);
     } catch (error) {
       console.error('Error fetching channel types:', error);
+      
+      // Fallback: 미리 정의된 채널 유형 사용
+      const fallbackTypes = [
+        { id: 1, code: 'platform_service', name: '플랫폼서비스', description: '온라인 플랫폼 및 서비스', color: 'blue', display_order: 1 },
+        { id: 2, code: 'government', name: '정부기관', description: '정부 및 공공기관', color: 'gray', display_order: 2 },
+        { id: 3, code: 'competition', name: '공모전', description: '공모전 및 대회', color: 'yellow', display_order: 3 },
+        { id: 4, code: 'portal_cafe', name: '포털카페', description: '네이버/다음 카페', color: 'amber', display_order: 4 },
+        { id: 5, code: 'sns_group', name: 'SNS그룹', description: '페이스북, 인스타그램 등', color: 'purple', display_order: 5 },
+        { id: 6, code: 'community', name: '커뮤니티', description: '온라인 커뮤니티', color: 'green', display_order: 6 },
+        { id: 7, code: 'open_chat', name: '오픈단톡방', description: '카카오톡 오픈채팅', color: 'pink', display_order: 7 },
+        { id: 8, code: 'discord', name: '디스코드', description: '디스코드 서버', color: 'indigo', display_order: 8 },
+        { id: 9, code: 'official_graduate', name: '공문-대학원', description: '대학원 공식 채널', color: 'blue', display_order: 9 },
+        { id: 10, code: 'official_university', name: '공문-대학교', description: '대학교 공식 채널', color: 'blue', display_order: 10 },
+        { id: 11, code: 'official_highschool', name: '공문-고등학교', description: '고등학교 공식 채널', color: 'blue', display_order: 11 },
+        { id: 12, code: 'dm_academic', name: 'DM-학회', description: '학회 DM 채널', color: 'red', display_order: 12 },
+        { id: 13, code: 'dm_association', name: 'DM-협회', description: '협회 DM 채널', color: 'red', display_order: 13 },
+        { id: 14, code: 'dm_university', name: 'DM-대학', description: '대학 DM 채널', color: 'red', display_order: 14 },
+        { id: 15, code: 'outdoor_university', name: '옥외광고-대학', description: '대학 옥외광고', color: 'teal', display_order: 15 },
+        { id: 16, code: 'outdoor_nst', name: '옥외광고-출연연NST', description: '출연연 옥외광고', color: 'teal', display_order: 16 },
+        { id: 17, code: 'outdoor_partner', name: '옥외광고-협력기관', description: '협력기관 옥외광고', color: 'teal', display_order: 17 },
+        { id: 18, code: 'performance', name: '퍼포먼스', description: '퍼포먼스 마케팅', color: 'cyan', display_order: 18 },
+        { id: 19, code: 'event_site', name: '이벤트사이트', description: '이벤트 사이트', color: 'amber', display_order: 19 }
+      ];
+      
+      setChannelTypes(fallbackTypes);
     } finally {
       setLoading(false);
     }
@@ -88,6 +113,21 @@ export const ChannelTypeManagement: React.FC = () => {
       setAttributes(data || []);
     } catch (error) {
       console.error('Error fetching attributes:', error);
+      
+      // Fallback: 미리 정의된 속성 사용
+      const fallbackAttributes = [
+        { id: 1, code: 'url', name: 'URL', data_type: 'url', display_order: 1 },
+        { id: 2, code: 'member_count', name: '회원수', data_type: 'number', display_order: 2 },
+        { id: 3, code: 'view_count', name: '조회수', data_type: 'number', display_order: 3 },
+        { id: 4, code: 'posted_date', name: '게재일', data_type: 'date', display_order: 4 },
+        { id: 5, code: 'email', name: '이메일', data_type: 'email', display_order: 5 },
+        { id: 6, code: 'phone', name: '전화번호', data_type: 'text', display_order: 6 },
+        { id: 7, code: 'contact_person', name: '담당자', data_type: 'text', display_order: 7 },
+        { id: 8, code: 'address', name: '주소', data_type: 'text', display_order: 8 },
+        { id: 9, code: 'memo', name: '메모', data_type: 'text', display_order: 9 }
+      ];
+      
+      setAttributes(fallbackAttributes);
     }
   };
 
@@ -222,7 +262,6 @@ export const ChannelTypeManagement: React.FC = () => {
         .update({
           code: type.code,
           name: type.name,
-          icon: type.icon,
           description: type.description,
           color: type.color
         })
@@ -333,7 +372,7 @@ export const ChannelTypeManagement: React.FC = () => {
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
               <h2 className="font-semibold text-lg">채널 유형</h2>
               <button
-                onClick={() => setNewType({ code: '', name: '', icon: '📁', color: 'gray', display_order: channelTypes.length + 1 })}
+                onClick={() => setNewType({ code: '', name: '', color: 'gray', display_order: channelTypes.length + 1 })}
                 className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
                 title="새 유형 추가"
               >
@@ -357,13 +396,6 @@ export const ChannelTypeManagement: React.FC = () => {
                     placeholder="유형 이름 (예: 블로그)"
                     value={newType.name || ''}
                     onChange={(e) => setNewType({ ...newType, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="아이콘 (이모지)"
-                    value={newType.icon || ''}
-                    onChange={(e) => setNewType({ ...newType, icon: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                   <div className="flex space-x-2">
@@ -402,12 +434,6 @@ export const ChannelTypeManagement: React.FC = () => {
                           onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />
-                        <input
-                          type="text"
-                          value={editingType.icon || ''}
-                          onChange={(e) => setEditingType({ ...editingType, icon: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleUpdateType(editingType)}
@@ -432,7 +458,6 @@ export const ChannelTypeManagement: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="text-xl">{type.icon}</span>
                         <div>
                           <div className="font-medium">{type.name}</div>
                           <div className="text-sm text-gray-500">{type.code}</div>
@@ -475,7 +500,6 @@ export const ChannelTypeManagement: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-4 border-b border-gray-200">
                 <h2 className="font-semibold text-lg flex items-center">
-                  <span className="text-2xl mr-2">{selectedType.icon}</span>
                   {selectedType.name} 속성 설정
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">

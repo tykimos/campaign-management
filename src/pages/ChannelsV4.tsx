@@ -67,13 +67,27 @@ export const ChannelsV4: React.FC = () => {
       setChannelTypes(data || []);
     } catch (error) {
       console.error('Error fetching channel types:', error);
-      // Fallback to mock data if table doesn't exist
+      // Fallback: 미리 정의된 채널 유형 사용
       setChannelTypes([
-        { id: 1, code: 'platform_service', name: '플랫폼서비스', icon: '🌐', color: 'blue' },
-        { id: 2, code: 'government', name: '정부기관', icon: '🏛️', color: 'gray' },
-        { id: 3, code: 'competition', name: '공모전', icon: '🏆', color: 'yellow' },
-        { id: 4, code: 'portal_cafe', name: '포털카페', icon: '☕', color: 'amber' },
-        { id: 5, code: 'sns_group', name: 'SNS그룹', icon: '📱', color: 'purple' }
+        { id: 1, code: 'platform_service', name: '플랫폼서비스', color: 'blue' },
+        { id: 2, code: 'government', name: '정부기관', color: 'gray' },
+        { id: 3, code: 'competition', name: '공모전', color: 'yellow' },
+        { id: 4, code: 'portal_cafe', name: '포털카페', color: 'amber' },
+        { id: 5, code: 'sns_group', name: 'SNS그룹', color: 'purple' },
+        { id: 6, code: 'community', name: '커뮤니티', color: 'green' },
+        { id: 7, code: 'open_chat', name: '오픈단톡방', color: 'pink' },
+        { id: 8, code: 'discord', name: '디스코드', color: 'indigo' },
+        { id: 9, code: 'official_graduate', name: '공문-대학원', color: 'blue' },
+        { id: 10, code: 'official_university', name: '공문-대학교', color: 'blue' },
+        { id: 11, code: 'official_highschool', name: '공문-고등학교', color: 'blue' },
+        { id: 12, code: 'dm_academic', name: 'DM-학회', color: 'red' },
+        { id: 13, code: 'dm_association', name: 'DM-협회', color: 'red' },
+        { id: 14, code: 'dm_university', name: 'DM-대학', color: 'red' },
+        { id: 15, code: 'outdoor_university', name: '옥외광고-대학', color: 'teal' },
+        { id: 16, code: 'outdoor_nst', name: '옥외광고-출연연NST', color: 'teal' },
+        { id: 17, code: 'outdoor_partner', name: '옥외광고-협력기관', color: 'teal' },
+        { id: 18, code: 'performance', name: '퍼포먼스', color: 'cyan' },
+        { id: 19, code: 'event_site', name: '이벤트사이트', color: 'amber' }
       ]);
     }
   };
@@ -393,7 +407,7 @@ export const ChannelsV4: React.FC = () => {
             <option value="all">모든 유형</option>
             {channelTypes.map(type => (
               <option key={type.code} value={type.code}>
-                {type.icon} {type.name}
+                {type.name}
               </option>
             ))}
           </select>
@@ -413,7 +427,7 @@ export const ChannelsV4: React.FC = () => {
               >
                 {channelTypes.map(type => (
                   <option key={type.id} value={type.id}>
-                    {type.icon} {type.name}
+                    {type.name}
                   </option>
                 ))}
               </select>
@@ -493,9 +507,6 @@ export const ChannelsV4: React.FC = () => {
           <div key={typeName} className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="font-semibold flex items-center">
-                <span className="text-xl mr-2">
-                  {channelTypes.find(t => t.name === typeName)?.icon || '📁'}
-                </span>
                 {typeName}
                 <span className="ml-2 text-sm text-gray-500">({typeChannels.length}개)</span>
               </h3>
