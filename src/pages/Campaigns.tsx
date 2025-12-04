@@ -10,7 +10,10 @@ import {
   Calendar,
   DollarSign,
   Eye,
-  Users
+  Users,
+  Trophy,
+  Presentation,
+  PartyPopper
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -178,6 +181,18 @@ export const Campaigns: React.FC = () => {
     );
   };
 
+  const getCategoryIcon = (categoryId: string | null) => {
+    if (!categoryId) return null;
+    
+    const icons: { [key: string]: JSX.Element } = {
+      'competition': <Trophy size={16} className="text-yellow-500" />,
+      'seminar': <Presentation size={16} className="text-blue-500" />,
+      'event': <PartyPopper size={16} className="text-purple-500" />
+    };
+    
+    return icons[categoryId] || null;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -243,11 +258,13 @@ export const Campaigns: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    {campaign.category && (
+                    {campaign.category ? (
                       <>
-                        <span className="mr-2">{campaign.category.icon}</span>
+                        <span className="mr-2">{getCategoryIcon(campaign.category_id)}</span>
                         <span className="text-sm text-gray-900">{campaign.category.name}</span>
                       </>
+                    ) : (
+                      <span className="text-sm text-gray-400">-</span>
                     )}
                   </div>
                 </td>
@@ -341,12 +358,10 @@ export const Campaigns: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">선택하세요</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
+                    <option value="">카테고리 선택</option>
+                    <option value="competition">🏆 경진대회</option>
+                    <option value="seminar">📊 세미나</option>
+                    <option value="event">🎉 이벤트</option>
                   </select>
                 </div>
                 <div>

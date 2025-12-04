@@ -26,21 +26,50 @@ export async function updateCampaignWithWorkaround(campaignId: number, updateDat
     // Add updated_at timestamp
     cleanData.updated_at = new Date().toISOString();
     
-    // Try normal update first
-    const { data, error } = await supabaseAdmin
+    console.log('Attempting to update campaign:', campaignId);
+    console.log('Update data:', cleanData);
+    
+    // First, just do the update without select
+    const { error: updateError } = await supabaseAdmin
       .from('campaigns')
       .update(cleanData)
-      .eq('id', campaignId)
-      .select()
-      .single();
+      .eq('id', campaignId);
     
-    if (error) {
-      console.error('Update error:', error);
-      throw error;
+    if (updateError) {
+      console.error('Update error:', updateError);
+      console.error('Error code:', updateError.code);
+      console.error('Error message:', updateError.message);
+      console.error('Error details:', updateError.details);
+      
+      // If RLS error, provide more info
+      if (updateError.code === '42501') {
+        console.error('This is an RLS policy error. The current user does not have permission to update this campaign.');
+        console.error('Possible solutions:');
+        console.error('1. Sign in to the application');
+        console.error('2. Update RLS policies in Supabase Dashboard');
+        console.error('3. Use a backend service with service key');
+      }
+      
+      throw updateError;
     }
     
-    return { data, error: null };
+    // If update succeeded, fetch the updated data separately
+    const { data: fetchedData, error: fetchError } = await supabaseAdmin
+      .from('campaigns')
+      .select('*')
+      .eq('id', campaignId)
+      .single();
+    
+    if (fetchError) {
+      console.warn('Could not fetch updated campaign, but update was successful');
+      // Don't throw here, update was successful
+      return { data: { id: campaignId, ...cleanData }, error: null };
+    }
+    
+    console.log('Update successful:', fetchedData);
+    return { data: fetchedData, error: null };
   } catch (error) {
+    console.error('Caught error in updateCampaignWithWorkaround:', error);
     return { data: null, error };
   }
 }
