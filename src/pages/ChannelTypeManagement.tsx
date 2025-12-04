@@ -176,42 +176,7 @@ export const ChannelTypeManagement: React.FC = () => {
 
 
   const handleToggleTypeAttribute = async (typeId: number, attributeId: number, isEnabled: boolean) => {
-    // Check if we're in fallback mode (no database connection)
-    const isFallbackMode = !typeAttributes[typeId] || typeAttributes[typeId].length === 0;
-    
-    if (isFallbackMode || true) { // Always use fallback mode for now since DB is not configured
-      // Handle in local state (fallback mode)
-      setTypeAttributes(prev => {
-        const currentTypeAttrs = prev[typeId] || [];
-        
-        if (isEnabled) {
-          // Add attribute
-          const maxOrder = currentTypeAttrs.reduce((max, ta) => 
-            Math.max(max, ta.display_order), 0) || 0;
-          
-          const newAttr: ChannelTypeAttribute = {
-            channel_type_id: typeId,
-            attribute_id: attributeId,
-            is_required: false,
-            display_order: maxOrder + 1
-          };
-          
-          return {
-            ...prev,
-            [typeId]: [...currentTypeAttrs, newAttr]
-          };
-        } else {
-          // Remove attribute
-          return {
-            ...prev,
-            [typeId]: currentTypeAttrs.filter(ta => ta.attribute_id !== attributeId)
-          };
-        }
-      });
-      return;
-    }
-    
-    // Original database mode (when DB is available)
+    // Try database first, fall back to local state if DB is not available
     try {
       if (isEnabled) {
         const maxOrder = typeAttributes[typeId]?.reduce((max, ta) => 
@@ -237,30 +202,50 @@ export const ChannelTypeManagement: React.FC = () => {
         if (error) throw error;
       }
       
+      // Refresh from database
       fetchTypeAttributes(typeId);
+      return;
     } catch (error) {
-      console.error('Error toggling type attribute:', error);
+      // Fall back to local state management if database is not available
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Database not available, using local state management');
+        
+        // Handle in local state (fallback mode)
+        setTypeAttributes(prev => {
+          const currentTypeAttrs = prev[typeId] || [];
+          
+          if (isEnabled) {
+            // Add attribute
+            const maxOrder = currentTypeAttrs.reduce((max, ta) => 
+              Math.max(max, ta.display_order), 0) || 0;
+            
+            const newAttr: ChannelTypeAttribute = {
+              channel_type_id: typeId,
+              attribute_id: attributeId,
+              is_required: false,
+              display_order: maxOrder + 1
+            };
+            
+            return {
+              ...prev,
+              [typeId]: [...currentTypeAttrs, newAttr]
+            };
+          } else {
+            // Remove attribute
+            return {
+              ...prev,
+              [typeId]: currentTypeAttrs.filter(ta => ta.attribute_id !== attributeId)
+            };
+          }
+        });
+      } else {
+        console.error('Error toggling type attribute:', error);
+      }
     }
   };
 
   const handleUpdateRequired = async (typeId: number, attributeId: number, isRequired: boolean) => {
-    // Always use fallback mode for now since DB is not configured
-    setTypeAttributes(prev => {
-      const currentTypeAttrs = prev[typeId] || [];
-      const updatedAttrs = currentTypeAttrs.map(ta => 
-        ta.attribute_id === attributeId 
-          ? { ...ta, is_required: isRequired }
-          : ta
-      );
-      
-      return {
-        ...prev,
-        [typeId]: updatedAttrs
-      };
-    });
-    return;
-    
-    // Original database mode (when DB is available)
+    // Try database first, fall back to local state if DB is not available
     try {
       const { error } = await supabase
         .from('channel_type_attributes')
@@ -269,9 +254,31 @@ export const ChannelTypeManagement: React.FC = () => {
         .eq('attribute_id', attributeId);
       
       if (error) throw error;
+      
+      // Refresh from database
       fetchTypeAttributes(typeId);
+      return;
     } catch (error) {
-      console.error('Error updating required status:', error);
+      // Fall back to local state management if database is not available
+      if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Could not find the table')) {
+        console.log('Database not available, using local state management');
+        
+        setTypeAttributes(prev => {
+          const currentTypeAttrs = prev[typeId] || [];
+          const updatedAttrs = currentTypeAttrs.map(ta => 
+            ta.attribute_id === attributeId 
+              ? { ...ta, is_required: isRequired }
+              : ta
+          );
+          
+          return {
+            ...prev,
+            [typeId]: updatedAttrs
+          };
+        });
+      } else {
+        console.error('Error updating required status:', error);
+      }
     }
   };
 
