@@ -43,8 +43,8 @@ const AppRoutes: React.FC = () => {
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="channels" element={<ChannelManagement />} />
         <Route path="channel-types" element={<ChannelTypeManagement />} />
+        <Route path="posts" element={<PostingManagement />} />
         <Route path="posts/:campaignId" element={<PostingManagement />} />
-        <Route path="posts" element={<Navigate to="/campaigns" />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
       </Route>

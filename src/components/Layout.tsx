@@ -6,6 +6,7 @@ import {
   Megaphone, 
   Users, 
   BarChart3,
+  FileText,
   Settings,
   LogOut,
   Menu,
@@ -40,6 +41,7 @@ export const Layout: React.FC = () => {
   const menuItems = [
     { to: '/', icon: Home, label: '대시보드' },
     { to: '/campaigns', icon: Megaphone, label: '캠페인 관리' },
+    { to: '/posts', icon: FileText, label: '게재 관리' },
     { to: '/channels', icon: Users, label: '채널 관리' },
     { to: '/channel-types', icon: Layers, label: '채널유형 관리' },
     { to: '/analytics', icon: BarChart3, label: '성과 분석' },
