@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock, Megaphone } from 'lucide-react';
+import { Calendar, ChevronRight, Save, CheckCircle, XCircle, Clock, DollarSign, Eye, Users, ArrowLeft } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface Campaign {
   id: number;
@@ -9,6 +11,9 @@ interface Campaign {
   start_date: string;
   end_date: string;
   status: string;
+  target_views?: number;
+  target_registrations?: number;
+  budget?: number;
   created_at: string;
 }
 
@@ -44,8 +49,9 @@ interface Posting {
 }
 
 export const PostingManagement: React.FC = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const navigate = useNavigate();
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [channelTypes, setChannelTypes] = useState<ChannelType[]>([]);
   const [selectedType, setSelectedType] = useState<ChannelType | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -55,34 +61,38 @@ export const PostingManagement: React.FC = () => {
   const [campaignStats, setCampaignStats] = useState<any>(null);
 
   useEffect(() => {
-    fetchCampaigns();
-    fetchChannelTypes();
-  }, []);
+    if (campaignId) {
+      fetchCampaign();
+      fetchChannelTypes();
+    }
+  }, [campaignId]);
 
   useEffect(() => {
-    if (selectedCampaign) {
+    if (campaign) {
       fetchCampaignStats();
       fetchPostings();
     }
-  }, [selectedCampaign]);
+  }, [campaign]);
 
   useEffect(() => {
-    if (selectedType) {
+    if (selectedType && campaign) {
       fetchChannels();
     }
-  }, [selectedType]);
+  }, [selectedType, campaign]);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaign = async () => {
     try {
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('id', campaignId)
+        .single();
       
       if (error) throw error;
-      setCampaigns(data || []);
+      setCampaign(data);
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
+      console.error('Error fetching campaign:', error);
+      navigate('/campaigns');
     }
   };
 
@@ -121,13 +131,13 @@ export const PostingManagement: React.FC = () => {
   };
 
   const fetchPostings = async () => {
-    if (!selectedCampaign) return;
+    if (!campaign) return;
     
     try {
       const { data, error } = await supabase
         .from('campaign_postings')
         .select('*')
-        .eq('campaign_id', selectedCampaign.id);
+        .eq('campaign_id', campaign.id);
       
       if (error) {
         console.log('Postings table may not exist yet');
@@ -145,13 +155,13 @@ export const PostingManagement: React.FC = () => {
   };
 
   const fetchCampaignStats = async () => {
-    if (!selectedCampaign) return;
+    if (!campaign) return;
     
     try {
       const { data, error } = await supabase
         .from('campaign_postings')
         .select('status')
-        .eq('campaign_id', selectedCampaign.id);
+        .eq('campaign_id', campaign.id);
       
       if (error) {
         setCampaignStats({
@@ -183,7 +193,7 @@ export const PostingManagement: React.FC = () => {
       ...prev,
       [channelId]: {
         ...prev[channelId],
-        campaign_id: selectedCampaign!.id,
+        campaign_id: campaign!.id,
         channel_id: channelId,
         [field]: value
       }
@@ -191,17 +201,15 @@ export const PostingManagement: React.FC = () => {
   };
 
   const savePosting = async (channelId: number) => {
-    if (!selectedCampaign) return;
+    if (!campaign) return;
     
     setSaving(true);
     try {
       const posting = postings[channelId] || {
-        campaign_id: selectedCampaign.id,
+        campaign_id: campaign.id,
         channel_id: channelId,
         status: 'pending'
       };
-      
-      // Table should already exist, no need to create it
       
       const { error } = await supabase
         .from('campaign_postings')
@@ -234,14 +242,16 @@ export const PostingManagement: React.FC = () => {
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
         return 'bg-green-100 text-green-800';
       case 'completed':
         return 'bg-gray-100 text-gray-800';
-      default:
+      case 'paused':
         return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
     }
   };
 
@@ -251,10 +261,22 @@ export const PostingManagement: React.FC = () => {
         return '진행중';
       case 'completed':
         return '완료';
+      case 'paused':
+        return '일시중지';
+      case 'planning':
+        return '기획중';
       default:
-        return '준비중';
+        return status;
     }
   };
+
+  if (!campaign) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">캠페인을 불러오는 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -263,243 +285,212 @@ export const PostingManagement: React.FC = () => {
         <p className="text-gray-600 mt-2">캠페인별 채널 게재 현황을 관리합니다.</p>
       </div>
 
+      {/* Campaign Header */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <button
+              onClick={() => navigate('/campaigns')}
+              className="flex items-center text-blue-600 hover:text-blue-800 text-sm mb-2"
+            >
+              <ArrowLeft size={16} className="mr-1" />
+              캠페인 목록으로
+            </button>
+            <h2 className="text-2xl font-bold">{campaign.name}</h2>
+            <p className="text-gray-600 mt-1">{campaign.description}</p>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+            {getStatusLabel(campaign.status)}
+          </span>
+        </div>
+
+        {/* Campaign Info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+          <div className="flex items-center text-gray-600">
+            <Calendar className="w-4 h-4 mr-2" />
+            <span>{format(new Date(campaign.start_date), 'yyyy-MM-dd')} ~ {format(new Date(campaign.end_date), 'yyyy-MM-dd')}</span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <Eye className="w-4 h-4 mr-2" />
+            <span>목표 {campaign.target_views?.toLocaleString() || 0} 조회</span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <Users className="w-4 h-4 mr-2" />
+            <span>목표 {campaign.target_registrations?.toLocaleString() || 0} 등록</span>
+          </div>
+          {campaign.budget && (
+            <div className="flex items-center text-gray-600">
+              <DollarSign className="w-4 h-4 mr-2" />
+              <span>{campaign.budget.toLocaleString()}원</span>
+            </div>
+          )}
+        </div>
+
+        {/* Campaign Stats */}
+        {campaignStats && (
+          <div className="grid grid-cols-5 gap-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-900">{campaignStats.total}</div>
+              <div className="text-sm text-gray-500">전체 채널</div>
+            </div>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{campaignStats.completed}</div>
+              <div className="text-sm text-gray-500">완료</div>
+            </div>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">{campaignStats.in_progress}</div>
+              <div className="text-sm text-gray-500">진행중</div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-600">{campaignStats.pending}</div>
+              <div className="text-sm text-gray-500">대기</div>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">{campaignStats.failed}</div>
+              <div className="text-sm text-gray-500">실패</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Channel Management Section */}
       <div className="bg-white rounded-lg shadow">
         <div className="flex">
-          {/* Left Sidebar - Campaign List */}
-          <div className="w-80 border-r">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">캠페인 선택</h2>
-            </div>
-            <div className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
-              {campaigns.map((campaign) => (
+          {/* Channel Types Sidebar */}
+          <div className="w-64 border-r p-4">
+            <h3 className="text-lg font-semibold mb-4">채널 유형</h3>
+            <div className="space-y-2">
+              {channelTypes.map((type) => (
                 <button
-                  key={campaign.id}
-                  onClick={() => setSelectedCampaign(campaign)}
-                  className={`w-full text-left p-4 rounded-lg transition-colors flex items-start justify-between ${
-                    selectedCampaign?.id === campaign.id
-                      ? 'bg-blue-50 border-2 border-blue-500'
-                      : 'hover:bg-gray-50 border-2 border-transparent'
+                  key={type.id}
+                  onClick={() => setSelectedType(type)}
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
+                    selectedType?.id === type.id
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex-1">
-                    <h3 className="font-medium">{campaign.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{campaign.description}</p>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                      <Calendar size={14} />
-                      <span>{campaign.start_date} ~ {campaign.end_date}</span>
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(campaign.status)}`}>
-                      {getStatusLabel(campaign.status)}
-                    </span>
-                  </div>
+                  <span className="font-medium">{type.name}</span>
+                  <ChevronRight size={16} className={`transition-transform ${
+                    selectedType?.id === type.id ? 'rotate-90' : ''
+                  }`} />
                 </button>
               ))}
-              {campaigns.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Megaphone size={48} className="mx-auto mb-4 opacity-30" />
-                  <p>등록된 캠페인이 없습니다.</p>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Right Content Area */}
-          <div className="flex-1">
-            {selectedCampaign ? (
-              <>
-                {/* Campaign Header */}
-                <div className="p-6 border-b">
-                  <div className="mb-4">
-                    <h2 className="text-2xl font-bold">{selectedCampaign.name}</h2>
-                    <p className="text-gray-600 mt-1">{selectedCampaign.description}</p>
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={16} />
-                        <span>기간: {selectedCampaign.start_date} ~ {selectedCampaign.end_date}</span>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs ${getStatusBadgeClass(selectedCampaign.status)}`}>
-                        {getStatusLabel(selectedCampaign.status)}
-                      </span>
-                    </div>
-                  </div>
+          {/* Channels Content */}
+          <div className="flex-1 p-6">
+            {selectedType ? (
+              loading ? (
+                <div className="text-center py-8">로딩 중...</div>
+              ) : channels.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold mb-4">{selectedType.name} 채널 게재 관리</h3>
+                  {channels.map((channel) => {
+                    const posting = postings[channel.id];
+                    return (
+                      <div key={channel.id} className="border rounded-lg p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              {getStatusIcon(posting?.status)}
+                              <h4 className="font-medium text-lg">{channel.name}</h4>
+                              {channel.url && (
+                                <a
+                                  href={channel.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 text-sm"
+                                >
+                                  링크
+                                </a>
+                              )}
+                              {channel.member_count && (
+                                <span className="text-sm text-gray-500">
+                                  회원 {channel.member_count.toLocaleString()}명
+                                </span>
+                              )}
+                            </div>
 
-                  {/* Campaign Stats */}
-                  {campaignStats && (
-                    <div className="grid grid-cols-5 gap-4 mt-6">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900">{campaignStats.total}</div>
-                        <div className="text-sm text-gray-500">전체 채널</div>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">{campaignStats.completed}</div>
-                        <div className="text-sm text-gray-500">완료</div>
-                      </div>
-                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                        <div className="text-2xl font-bold text-yellow-600">{campaignStats.in_progress}</div>
-                        <div className="text-sm text-gray-500">진행중</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-600">{campaignStats.pending}</div>
-                        <div className="text-sm text-gray-500">대기</div>
-                      </div>
-                      <div className="text-center p-3 bg-red-50 rounded-lg">
-                        <div className="text-2xl font-bold text-red-600">{campaignStats.failed}</div>
-                        <div className="text-sm text-gray-500">실패</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Channel Type Selection */}
-                <div className="flex">
-                  {/* Channel Types */}
-                  <div className="w-64 border-r p-4">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">채널 유형</h3>
-                    <div className="space-y-2">
-                      {channelTypes.map((type) => (
-                        <button
-                          key={type.id}
-                          onClick={() => setSelectedType(type)}
-                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                            selectedType?.id === type.id
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className="font-medium text-sm">{type.name}</span>
-                          <ChevronRight size={16} className={`transition-transform ${
-                            selectedType?.id === type.id ? 'rotate-90' : ''
-                          }`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Channels */}
-                  <div className="flex-1 p-6">
-                    {selectedType ? (
-                      loading ? (
-                        <div className="text-center py-8">로딩 중...</div>
-                      ) : channels.length > 0 ? (
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold mb-4">{selectedType.name} 채널 게재 관리</h3>
-                          {channels.map((channel) => {
-                            const posting = postings[channel.id];
-                            return (
-                              <div key={channel.id} className="border rounded-lg p-4">
-                                <div className="flex items-start gap-4">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-3">
-                                      {getStatusIcon(posting?.status)}
-                                      <h3 className="font-medium text-lg">{channel.name}</h3>
-                                      {channel.url && (
-                                        <a
-                                          href={channel.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-blue-600 hover:text-blue-800 text-sm"
-                                        >
-                                          링크
-                                        </a>
-                                      )}
-                                      {channel.member_count && (
-                                        <span className="text-sm text-gray-500">
-                                          회원 {channel.member_count.toLocaleString()}명
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                          게재 상태
-                                        </label>
-                                        <select
-                                          value={posting?.status || 'pending'}
-                                          onChange={(e) => handlePostingUpdate(channel.id, 'status', e.target.value)}
-                                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        >
-                                          <option value="pending">대기</option>
-                                          <option value="in_progress">진행중</option>
-                                          <option value="completed">완료</option>
-                                          <option value="failed">실패</option>
-                                        </select>
-                                      </div>
-
-                                      <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                          게재일
-                                        </label>
-                                        <input
-                                          type="date"
-                                          value={posting?.posted_date || ''}
-                                          onChange={(e) => handlePostingUpdate(channel.id, 'posted_date', e.target.value)}
-                                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="mt-3">
-                                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        결과
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={posting?.result || ''}
-                                        onChange={(e) => handlePostingUpdate(channel.id, 'result', e.target.value)}
-                                        placeholder="게재 결과를 입력하세요"
-                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      />
-                                    </div>
-
-                                    <div className="mt-3">
-                                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        메모
-                                      </label>
-                                      <textarea
-                                        value={posting?.memo || ''}
-                                        onChange={(e) => handlePostingUpdate(channel.id, 'memo', e.target.value)}
-                                        placeholder="메모를 입력하세요"
-                                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        rows={2}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <button
-                                    onClick={() => savePosting(channel.id)}
-                                    disabled={saving}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
-                                  >
-                                    <Save size={16} />
-                                    저장
-                                  </button>
-                                </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  게재 상태
+                                </label>
+                                <select
+                                  value={posting?.status || 'pending'}
+                                  onChange={(e) => handlePostingUpdate(channel.id, 'status', e.target.value)}
+                                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="pending">대기</option>
+                                  <option value="in_progress">진행중</option>
+                                  <option value="completed">완료</option>
+                                  <option value="failed">실패</option>
+                                </select>
                               </div>
-                            );
-                          })}
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  게재일
+                                </label>
+                                <input
+                                  type="date"
+                                  value={posting?.posted_date || ''}
+                                  onChange={(e) => handlePostingUpdate(channel.id, 'posted_date', e.target.value)}
+                                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="mt-3">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                결과
+                              </label>
+                              <input
+                                type="text"
+                                value={posting?.result || ''}
+                                onChange={(e) => handlePostingUpdate(channel.id, 'result', e.target.value)}
+                                placeholder="게재 결과를 입력하세요"
+                                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                메모
+                              </label>
+                              <textarea
+                                value={posting?.memo || ''}
+                                onChange={(e) => handlePostingUpdate(channel.id, 'memo', e.target.value)}
+                                placeholder="메모를 입력하세요"
+                                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                rows={2}
+                              />
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => savePosting(channel.id)}
+                            disabled={saving}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+                          >
+                            <Save size={16} />
+                            저장
+                          </button>
                         </div>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          이 유형에 등록된 채널이 없습니다.
-                        </div>
-                      )
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        좌측에서 채널 유형을 선택해주세요.
                       </div>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
-              </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  이 유형에 등록된 채널이 없습니다.
+                </div>
+              )
             ) : (
-              <div className="flex items-center justify-center h-[600px] text-gray-500">
-                <div className="text-center">
-                  <Megaphone size={48} className="mx-auto mb-4 opacity-30" />
-                  <p>좌측에서 캠페인을 선택해주세요.</p>
-                </div>
+              <div className="text-center py-8 text-gray-500">
+                좌측에서 채널 유형을 선택해주세요.
               </div>
             )}
           </div>

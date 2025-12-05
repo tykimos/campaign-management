@@ -13,7 +13,8 @@ import {
   Users,
   Trophy,
   Presentation,
-  PartyPopper
+  PartyPopper,
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -308,15 +309,24 @@ export const Campaigns: React.FC = () => {
                   {getStatusBadge(campaign.status)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <a
+                    href={`/posts/${campaign.id}`}
+                    className="text-green-600 hover:text-green-900 mr-3 inline-block"
+                    title="게재 관리"
+                  >
+                    <FileText size={18} />
+                  </a>
                   <button
                     onClick={() => handleEdit(campaign)}
                     className="text-blue-600 hover:text-blue-900 mr-3"
+                    title="수정"
                   >
                     <Edit2 size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(campaign.id)}
                     className="text-red-600 hover:text-red-900"
+                    title="삭제"
                   >
                     <Trash2 size={18} />
                   </button>
